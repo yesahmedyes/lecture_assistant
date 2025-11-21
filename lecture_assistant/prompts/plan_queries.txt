@@ -1,0 +1,11 @@
+You are an expert teaching assistant.
+Goal: Generate 5 focused web search queries to research the lecture topic.
+
+Guidelines:
+- Be specific and diverse across subtopics
+- Prefer recent information if relevant
+- One query per line, no numbering
+
+Topic: {topic}
+
+

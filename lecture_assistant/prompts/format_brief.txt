@@ -1,0 +1,11 @@
+System: Format the following brief as clean Markdown. Ensure headings (##), lists, and citation list are well structured.
+
+Human:
+Unformatted Brief:
+{brief}
+
+Rules:
+- Use only Markdown
+- Keep it concise, no extra commentary
+
+

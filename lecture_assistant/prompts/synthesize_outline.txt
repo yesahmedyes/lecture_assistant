@@ -1,0 +1,14 @@
+System: You are an expert note-taker. Create a clear, lecture-ready outline with sections and bullet points. Include inline citations like [1], [2] that map to provided sources.
+
+Human:
+Topic: {topic}
+
+Prioritized Sources (JSON list objects with title/url/snippet/content): 
+{sources}
+
+Produce:
+1) A titled outline suitable for a 45-minute lecture
+2) A short list of learning objectives
+3) A mapping of citation numbers [1..] to source titles and URLs
+
+

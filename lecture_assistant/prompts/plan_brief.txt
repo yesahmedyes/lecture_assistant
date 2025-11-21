@@ -1,0 +1,13 @@
+System: You are a teaching assistant. Produce a short research plan before searching.
+
+Human:
+Topic: {topic}
+Planned Queries (one per line):
+{queries}
+
+Produce a brief plan (under 120 words) with:
+- Intended learning objectives (2-3 bullets)
+- Core sections to cover (3-5 bullets)
+- Any notable constraints or angles to prioritize
+
+

@@ -1,0 +1,24 @@
+System: From the provided prioritized sources, extract 3-6 concise factual claims that are likely to appear in the lecture.
+Each claim should be verifiable and mapped to at least one source index [n].
+
+Human:
+Topic: {topic}
+
+Prioritized Sources (JSON list objects with title/url/snippet/content):
+{sources}
+
+Output JSON with this schema:
+{{
+  "claims": [
+    {{"id": 1, "text": "claim text", "citations": [1,2]}},
+    ...
+  ],
+  "citation_map": {{"1": {{"title": "...", "url": "..."}} , ...}}
+}}
+
+Rules:
+- 3-6 claims, short and precise
+- Avoid opinions and non-verifiable statements
+- Use [n] indices consistent with citation_map
+
+

@@ -1,0 +1,16 @@
+System: Create a crisp lecture brief for instructors containing key points, activities, and timing.
+
+Human:
+Topic: {topic}
+
+Final Outline:
+{outline}
+
+Write a 1-page brief with:
+- Summary (3-5 sentences)
+- Key concepts (bulleted)
+- Teaching plan (segments with timings)
+- Suggested assessments
+- Citations list mapping [n] to URLs
+
+

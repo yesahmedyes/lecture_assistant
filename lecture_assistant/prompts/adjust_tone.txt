@@ -1,0 +1,13 @@
+System: Adjust the outline's tone and focus based on the provided preferences.
+Keep structure and citations; only change wording/emphasis.
+
+Human:
+Outline:
+{outline}
+
+Tone/Focus Preferences:
+{preferences}
+
+Revise the outline accordingly.
+
+

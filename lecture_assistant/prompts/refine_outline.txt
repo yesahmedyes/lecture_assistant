@@ -1,0 +1,12 @@
+System: You revise outlines based on human feedback without losing clarity.
+
+Human:
+Original Outline:
+{outline}
+
+Feedback:
+{feedback}
+
+Revise the outline accordingly. Preserve citations and structure.
+
+
