@@ -1,0 +1,2 @@
+{"ts": 1763825474.262272, "node": "hitl_plan_review", "inputs": {"plan_len": 984}, "outputs": {"decision": "approve"}}
+{"ts": 1763825973.153332, "node": "hitl_plan_review", "inputs": {"plan_len": 909}, "outputs": {"decision": "approve"}}
