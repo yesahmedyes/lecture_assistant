@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import TypedDict, List, Dict, Literal, Optional
-
-from langchain_core.messages import HumanMessage, SystemMessage
+from typing import TypedDict, List, Dict, Literal
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -66,22 +64,14 @@ def build_graph(llm: BaseChatModel):
     graph = StateGraph(LectureState)
 
     def input_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: input")
-        print("=" * 60)
+        print("🔵 input")
         topic = state["topic"].strip()
         seed = int(state.get("seed", 42))
-        print(f"   Topic: {topic}")
-        print(f"   Seed: {seed}")
         log_event("input", {"inputs": {"topic": topic, "seed": seed}})
         return {"topic": topic, "seed": seed, "status": "input"}
 
     def search_plan_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: search_plan")
-        print("=" * 60)
         topic = state["topic"]
-        print(f"   Planning search queries for: {topic}")
         prompt_text = load_prompt("plan_queries.txt")
         prompt = ChatPromptTemplate.from_template(prompt_text)
         chain = prompt | llm | StrOutputParser()
@@ -91,6 +81,8 @@ def build_graph(llm: BaseChatModel):
         queries = [
             q.strip("- ").strip() for q in queries_text.splitlines() if q.strip()
         ]
+        num_queries = len(queries[:5])
+        print(f"🔵 search_plan ({num_queries} queries)")
         log_event(
             "search_plan",
             {
@@ -108,29 +100,25 @@ def build_graph(llm: BaseChatModel):
         }
 
     def web_search_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: web_search")
-        print("=" * 60)
         topic = state["topic"]
         extra = state.get("search_queries") or []
-        print(f"   Searching with {len(extra)} queries...")
+        num_queries = len(extra)
         results = research_topic(topic, extra_queries=extra, per_query=6)
+        num_results = len(results)
+        print(f"🔵 web_search ({num_queries} queries → {num_results} results)")
         log_event(
             "web_search",
             {
                 "inputs": {"topic": topic, "queries": extra},
-                "outputs": {"num_results": len(results)},
+                "outputs": {"num_results": num_results},
             },
         )
         return {"search_results": results, "status": "searching"}
 
     def plan_draft_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: plan_draft")
-        print("=" * 60)
+        print("🔵 plan_draft")
         topic = state["topic"]
         queries = state.get("search_queries", [])
-        print(f"   Drafting plan with {len(queries)} queries...")
         prompt_text = load_prompt("plan_brief.txt")
         prompt = ChatPromptTemplate.from_template(prompt_text)
         chain = prompt | llm | StrOutputParser()
@@ -147,9 +135,7 @@ def build_graph(llm: BaseChatModel):
         return {"plan_summary": plan, "status": "plan_drafting"}
 
     def plan_review_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: plan_review")
-        print("=" * 60)
+        print("🔵 plan_review")
         existing = (state.get("plan_feedback") or "").strip()
         if existing:
             log_event(
@@ -187,18 +173,14 @@ def build_graph(llm: BaseChatModel):
     def needs_replan(state: LectureState) -> Literal["replan", "continue"]:
         fb = (state.get("plan_feedback") or "").strip().lower()
         decision = "replan" if fb and fb != "approve" else "continue"
-        print(f"   ⚡ Decision: {decision} (feedback: {fb or 'none'})")
         return decision
 
     def synthesize_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: synthesize")
-        print("=" * 60)
+        print("🔵 synthesize")
         prompt_text = load_prompt("synthesize_outline.txt")
         prompt = ChatPromptTemplate.from_template(prompt_text)
         chain = prompt | llm | StrOutputParser()
         sources = state.get("prioritized_sources", [])
-        print(f"   Synthesizing outline from {len(sources)} sources...")
         topic_hint = state["topic"]
         pf = (state.get("plan_feedback") or "").strip()
         cf = (state.get("claims_feedback") or "").strip()
@@ -222,11 +204,8 @@ def build_graph(llm: BaseChatModel):
         return {"outline": outline, "status": "synthesizing"}
 
     def extract_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: extract")
-        print("=" * 60)
+        print("🔵 extract")
         results = state.get("search_results", [])
-        print(f"   Extracting content from {len(results)} search results...")
         enriched = extract_sources_with_content(results)
         log_event(
             "extract",
@@ -238,11 +217,8 @@ def build_graph(llm: BaseChatModel):
         return {"extracted_sources": enriched, "status": "extracting"}
 
     def prioritize_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: prioritize")
-        print("=" * 60)
+        print("🔵 prioritize")
         enriched = state.get("extracted_sources", [])
-        print(f"   Prioritizing {len(enriched)} sources...")
         prioritized = prioritize_sources(enriched, top_k=12)
         log_event(
             "author_prioritization",
@@ -254,11 +230,8 @@ def build_graph(llm: BaseChatModel):
         return {"prioritized_sources": prioritized, "status": "prioritizing"}
 
     def claims_extract_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: claims_extract")
-        print("=" * 60)
+        print("🔵 claims_extract")
         sources = state.get("prioritized_sources", [])
-        print(f"   Extracting claims from {len(sources)} sources...")
         prompt_text = load_prompt("extract_claims.txt")
         prompt = ChatPromptTemplate.from_template(prompt_text)
         chain = prompt | llm | StrOutputParser()
@@ -293,9 +266,7 @@ def build_graph(llm: BaseChatModel):
         }
 
     def claims_review_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: claims_review")
-        print("=" * 60)
+        print("🔵 claims_review")
         existing = (state.get("claims_feedback") or "").strip()
         if existing:
             log_event(
@@ -336,9 +307,7 @@ def build_graph(llm: BaseChatModel):
         return {"claims_feedback": fb, "status": "claims_review"}
 
     def review_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: review")
-        print("=" * 60)
+        print("🔵 review")
         # Human-in-the-loop via interactive input; non-interactive pipelines can pass feedback via state.
         existing_feedback = state.get("human_feedback", "")
         if existing_feedback:
@@ -368,12 +337,9 @@ def build_graph(llm: BaseChatModel):
         return {"human_feedback": feedback or "approve", "status": "review"}
 
     def refinement_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: refine")
-        print("=" * 60)
+        print("🔵 refine")
         feedback = state.get("human_feedback", "")
         outline = state.get("outline", "")
-        print(f"   Refining outline based on feedback...")
         if not feedback or feedback.lower() == "approve":
             return {"outline": outline, "status": "refining"}
         prompt_text = load_prompt("refine_outline.txt")
@@ -395,9 +361,7 @@ def build_graph(llm: BaseChatModel):
         return {"outline": revised, "status": "refining"}
 
     def tone_review_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: tone_review")
-        print("=" * 60)
+        print("🔵 tone_review")
         existing = (state.get("tone_prefs") or "").strip()
         if existing:
             log_event(
@@ -433,11 +397,8 @@ def build_graph(llm: BaseChatModel):
         return {"tone_prefs": prefs, "status": "tone_review"}
 
     def tone_apply_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: tone_apply")
-        print("=" * 60)
+        print("🔵 tone_apply")
         prefs = (state.get("tone_prefs") or "").strip()
-        print(f"   Applying tone preferences: {prefs}")
         if not prefs:
             return {"outline": state.get("outline", ""), "status": "tone_applying"}
         prompt_text = load_prompt("adjust_tone.txt")
@@ -461,10 +422,7 @@ def build_graph(llm: BaseChatModel):
         return {"outline": revised, "status": "tone_applying"}
 
     def final_brief_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: brief (final)")
-        print("=" * 60)
-        print(f"   Generating final brief for: {state['topic']}")
+        print("🔵 brief")
         prompt_text = load_prompt("final_brief.txt")
         prompt = ChatPromptTemplate.from_template(prompt_text)
         chain = prompt | llm | StrOutputParser()
@@ -483,10 +441,7 @@ def build_graph(llm: BaseChatModel):
         return {"brief": brief, "status": "final"}
 
     def formatting_node(state: LectureState) -> LectureState:
-        print("\n" + "=" * 60)
-        print(f"🔵 NODE: format")
-        print("=" * 60)
-        print(f"   Formatting final brief...")
+        print("🔵 format")
         prompt_text = load_prompt("format_brief.txt")
         prompt = ChatPromptTemplate.from_template(prompt_text)
         chain = prompt | llm | StrOutputParser()
@@ -509,7 +464,6 @@ def build_graph(llm: BaseChatModel):
     def needs_revision(state: LectureState) -> Literal["refine", "brief"]:
         feedback = (state.get("human_feedback") or "").strip().lower()
         decision = "refine" if feedback and feedback != "approve" else "brief"
-        print(f"   ⚡ Decision: {decision} (feedback: {feedback or 'none'})")
         return decision
 
     graph.add_node("input", input_node)
@@ -551,7 +505,6 @@ def build_graph(llm: BaseChatModel):
     def tone_next(state: LectureState) -> Literal["apply", "skip"]:
         prefs = (state.get("tone_prefs") or "").strip()
         decision = "apply" if prefs else "skip"
-        print(f"   ⚡ Decision: {decision} tone preferences")
         return decision
 
     graph.add_conditional_edges(
