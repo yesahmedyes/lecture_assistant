@@ -9,7 +9,9 @@ import {
   Check,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import type { SessionResult } from "../types";
 
 interface Props {
@@ -55,9 +57,52 @@ export default function ResultsView({ sessionId, result }: Props) {
     pdf.setFont("helvetica", "normal");
 
     const lines = text.split("\n");
+    let inTable = false;
+    let tableData: string[][] = [];
+    let tableHeaders: string[] = [];
 
     for (let i = 0; i < lines.length; i++) {
       let line = lines[i];
+
+      // Detect table start/end
+      if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
+        const cells = line
+          .split("|")
+          .slice(1, -1)
+          .map((cell) => cell.trim());
+
+        // Check if this is a separator line (|---|---|)
+        if (cells.every((cell) => /^[-:]+$/.test(cell))) {
+          continue; // Skip separator line
+        }
+
+        if (!inTable) {
+          // First row is headers
+          inTable = true;
+          tableHeaders = cells;
+        } else {
+          // Data rows
+          tableData.push(cells);
+        }
+        continue;
+      } else if (inTable) {
+        // End of table, render it
+        autoTable(pdf, {
+          head: [tableHeaders],
+          body: tableData,
+          startY: y,
+          margin: { left: margin, right: margin },
+          theme: "striped",
+          headStyles: { fillColor: [71, 85, 105], fontStyle: "bold" },
+          styles: { fontSize: 10 },
+        });
+        y = (pdf as any).lastAutoTable.finalY + 10;
+        inTable = false;
+        tableData = [];
+        tableHeaders = [];
+      }
+
+      if (inTable) continue;
 
       // Check if we need a new page
       if (y > pageHeight - margin) {
@@ -119,6 +164,19 @@ export default function ResultsView({ sessionId, result }: Props) {
 
       pdf.text(splitLines, margin, y);
       y += splitLines.length * 6;
+    }
+
+    // If we ended while still in a table, render it
+    if (inTable && tableData.length > 0) {
+      autoTable(pdf, {
+        head: [tableHeaders],
+        body: tableData,
+        startY: y,
+        margin: { left: margin, right: margin },
+        theme: "striped",
+        headStyles: { fillColor: [71, 85, 105], fontStyle: "bold" },
+        styles: { fontSize: 10 },
+      });
     }
 
     // Save the PDF
@@ -199,8 +257,8 @@ export default function ResultsView({ sessionId, result }: Props) {
               </button>
             </div>
           </div>
-          <div className="prose prose-slate max-w-none">
-            <ReactMarkdown>
+          <div className="prose prose-slate max-w-none prose-table:border-collapse prose-th:border prose-th:border-slate-300 prose-th:bg-slate-100 prose-th:p-2 prose-th:font-semibold prose-td:border prose-td:border-slate-300 prose-td:p-2">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {result.formatted_brief ||
                 result.final_brief ||
                 "No brief available"}
@@ -267,18 +325,6 @@ export default function ResultsView({ sessionId, result }: Props) {
                     </span>{" "}
                     {claim.text}
                   </p>
-                  {claim.citations && claim.citations.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {claim.citations.map((cite, i) => (
-                        <span
-                          key={i}
-                          className="status-badge bg-blue-50 text-blue-700 text-xs"
-                        >
-                          {cite}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>

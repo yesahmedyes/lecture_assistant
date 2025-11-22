@@ -57,6 +57,26 @@ export default function SessionDetail() {
     loadStatus();
   }, [sessionId, loadStatus, isInitialLoad]);
 
+  // Map node names to their corresponding status values
+  const nodeToStatusMap: Record<string, string> = {
+    input: "input",
+    search_plan: "search_planning",
+    plan_draft: "plan_drafting",
+    plan_review: "plan_review",
+    web_search: "searching",
+    extract: "extracting",
+    prioritize: "prioritizing",
+    claims_extract: "claims_extracting",
+    claims_review: "claims_review",
+    synthesize: "synthesizing",
+    review: "review",
+    refine: "refining",
+    tone_review: "tone_review",
+    tone_apply: "tone_applying",
+    brief: "final",
+    format: "formatting",
+  };
+
   // WebSocket message handler
   const handleWebSocketMessage = useCallback(
     async (message: any) => {
@@ -67,13 +87,16 @@ export default function SessionDetail() {
       } else if (message.type === "node_started") {
         console.log("🟢 Node started:", message.node);
 
+        // Map the node name to its status value
+        const nodeStatus = nodeToStatusMap[message.node] || message.node;
+
         // Update current node to show it's now active
         if (!currentStatus) {
           // If no previous status, create a new one
           const newStatus = {
             session_id: sessionId || "",
             status: "running",
-            current_node: message.status,
+            current_node: nodeStatus,
             waiting_for_human: false,
             checkpoint_type: undefined,
             checkpoint_data: undefined,
@@ -82,7 +105,7 @@ export default function SessionDetail() {
           setCurrentStatus(newStatus);
         } else {
           const updates = {
-            current_node: message.status,
+            current_node: nodeStatus,
           };
 
           updateCurrentStatus(updates);
@@ -149,7 +172,7 @@ export default function SessionDetail() {
         );
       }
     },
-    [sessionId, loadStatus]
+    [sessionId, currentStatus, setCurrentStatus, updateCurrentStatus]
   );
 
   // Connect to WebSocket
@@ -220,11 +243,6 @@ export default function SessionDetail() {
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary-200 border-t-primary-600 mb-4"></div>
                 <p className="text-slate-600 font-medium">Processing...</p>
-                <p className="text-slate-500 text-sm mt-2">
-                  {currentStatus?.current_node
-                    ? `Current: ${currentStatus.current_node}`
-                    : "Initializing..."}
-                </p>
               </div>
             </div>
           )}

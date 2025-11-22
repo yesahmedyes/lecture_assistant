@@ -21,3 +21,12 @@
 {"ts": 1763829886.413957, "node": "hitl_plan_review", "inputs": {"plan_len": 899}, "outputs": {"decision": "waiting"}}
 {"ts": 1763830791.8323991, "node": "hitl_plan_review", "inputs": {"plan_len": 944}, "outputs": {"decision": "waiting"}}
 {"ts": 1763830969.5754812, "node": "hitl_plan_review", "inputs": {"plan_len": 967}, "outputs": {"decision": "waiting"}}
+{"ts": 1763831810.677382, "node": "hitl_plan_review", "inputs": {"plan_len": 956}, "outputs": {"decision": "waiting"}}
+{"ts": 1763831990.533057, "node": "hitl_plan_review", "inputs": {"plan_len": 948}, "outputs": {"decision": "waiting"}}
+{"ts": 1763832001.841507, "node": "hitl_plan_review", "inputs": {"plan_len": 948}, "outputs": {"decision": "approve"}}
+{"ts": 1763832058.480268, "node": "hitl_plan_review", "inputs": {"plan_len": 1028}, "outputs": {"decision": "waiting"}}
+{"ts": 1763832338.233537, "node": "hitl_plan_review", "inputs": {"plan_len": 864}, "outputs": {"decision": "waiting"}}
+{"ts": 1763832965.5912142, "node": "hitl_plan_review", "inputs": {"plan_len": 948}, "outputs": {"decision": "waiting"}}
+{"ts": 1763832972.287824, "node": "hitl_plan_review", "inputs": {"plan_len": 948}, "outputs": {"decision": "approve"}}
+{"ts": 1763833413.438967, "node": "hitl_plan_review", "inputs": {"plan_len": 963}, "outputs": {"decision": "waiting"}}
+{"ts": 1763833416.4327528, "node": "hitl_plan_review", "inputs": {"plan_len": 963}, "outputs": {"decision": "approve"}}

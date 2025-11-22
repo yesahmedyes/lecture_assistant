@@ -32,14 +32,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Session storage (use Redis/DB in production)
 active_sessions: Dict[str, Dict[str, Any]] = {}
 session_graphs: Dict[str, Any] = {}
-
-
-# ============================================================================
-# WEBSOCKET CONNECTION MANAGER
-# ============================================================================
 
 
 class ConnectionManager:
@@ -88,11 +82,6 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-# ============================================================================
-# REQUEST/RESPONSE MODELS
-# ============================================================================
-
-
 class StartSessionRequest(BaseModel):
     topic: str = Field(..., description="The lecture topic to research")
     model: Optional[str] = Field(None, description="LLM model name")
@@ -129,11 +118,6 @@ class SessionResult(BaseModel):
     outline: Optional[str]
     sources: Optional[List[Dict[str, str]]]
     claims: Optional[List[Dict[str, Any]]]
-
-
-# ============================================================================
-# HELPER FUNCTIONS
-# ============================================================================
 
 
 def get_checkpoint_data(
@@ -182,10 +166,6 @@ def get_checkpoint_data(
 
 
 async def run_session_step_by_step(session_id: str, request: StartSessionRequest):
-    """
-    Run the graph step by step, pausing at checkpoints.
-    Send updates via WebSocket.
-    """
     try:
         # Add delay to allow WebSocket to connect first
         await asyncio.sleep(0.5)
@@ -227,66 +207,75 @@ async def run_session_step_by_step(session_id: str, request: StartSessionRequest
             "configurable": {"thread_id": session_id},
         }
 
-        # Stream events from the graph
-        for event in graph.stream(state, config=config):
-            # Update state
-            if event:
-                for node_name, node_output in event.items():
-                    print(f"📦 Node {node_name} output: {list(node_output.keys())}")
+        # Stream events from the graph with real-time updates
+        async for event in graph.astream_events(state, config=config, version="v2"):
+            kind = event.get("event")
 
-                    # Get the status this node is entering
-                    next_status = node_output.get("status", "unknown")
+            # Node execution started
+            if kind == "on_chain_start":
+                metadata = event.get("metadata", {})
+                langgraph_node = metadata.get("langgraph_node")
 
-                    # Send "node_started" message FIRST (node is now active)
-                    print(f"📤 Sending node_started for {node_name} → {next_status}")
+                if langgraph_node:
+                    print(f"🟢 Node STARTING: {langgraph_node}")
+
+                    # Send node_started immediately when execution begins
                     await manager.send_update(
                         session_id,
                         {
                             "type": "node_started",
-                            "node": node_name,
-                            "status": next_status,
+                            "node": langgraph_node,
+                            "status": state.get("status", "running"),
                         },
                     )
 
-                    # Small delay to ensure message is sent
-                    await asyncio.sleep(0.05)
+            # Node execution completed
+            elif kind == "on_chain_end":
+                metadata = event.get("metadata", {})
+                langgraph_node = metadata.get("langgraph_node")
 
-                    # Update state
-                    state.update(node_output)
-                    session["state"] = state
+                if langgraph_node:
+                    # Get the output from the node
+                    node_output = event.get("data", {}).get("output", {})
 
-                    current_status = state.get("status", "unknown")
-                    waiting = state.get("_waiting_for_human", False)
-                    checkpoint_type = state.get("_checkpoint_type")
-
-                    # Send "node_complete" update
-                    update = {
-                        "type": "node_complete",
-                        "node": node_name,
-                        "status": current_status,
-                        "waiting_for_human": waiting,
-                    }
-
-                    if waiting and checkpoint_type:
-                        update["checkpoint_type"] = checkpoint_type
-                        update["checkpoint_data"] = get_checkpoint_data(
-                            state, checkpoint_type
+                    if node_output and isinstance(node_output, dict):
+                        print(
+                            f"🔵 Node COMPLETED: {langgraph_node}, output keys: {list(node_output.keys())}"
                         )
 
-                    print(
-                        f"📤 Sending node_complete for {node_name}: waiting={waiting}"
-                    )
-                    await manager.send_update(session_id, update)
+                        # Update state with node output
+                        state.update(node_output)
+                        session["state"] = state
 
-                    # Small delay to ensure message is sent
-                    await asyncio.sleep(0.05)
+                        current_status = state.get("status", "unknown")
+                        waiting = state.get("_waiting_for_human", False)
+                        checkpoint_type = state.get("_checkpoint_type")
 
-                    # If waiting for human, pause execution
-                    if waiting:
-                        session["waiting_for_human"] = True
-                        session["checkpoint_type"] = checkpoint_type
-                        print(f"⏸️  Pausing at {checkpoint_type} checkpoint")
-                        return  # Exit and wait for feedback
+                        # Send node_complete update
+                        update = {
+                            "type": "node_complete",
+                            "node": langgraph_node,
+                            "status": current_status,
+                            "waiting_for_human": waiting,
+                        }
+
+                        if waiting and checkpoint_type:
+                            update["checkpoint_type"] = checkpoint_type
+                            update["checkpoint_data"] = get_checkpoint_data(
+                                state, checkpoint_type
+                            )
+
+                        print(
+                            f"📤 Sending node_complete for {langgraph_node}: waiting={waiting}"
+                        )
+                        await manager.send_update(session_id, update)
+
+                        # If waiting for human, pause execution
+                        if waiting:
+                            session["waiting_for_human"] = True
+                            session["checkpoint_type"] = checkpoint_type
+                            print(f"⏸️  Pausing at {checkpoint_type} checkpoint")
+                            return  # Exit and wait for feedback
 
         # Execution complete
         session["status"] = "completed"
@@ -323,7 +312,6 @@ async def run_session_step_by_step(session_id: str, request: StartSessionRequest
 
 
 async def continue_session(session_id: str):
-    """Continue a paused session after receiving feedback."""
     if session_id not in active_sessions:
         print(f"⚠️  Session {session_id[:8]} not found")
         return
@@ -371,59 +359,73 @@ async def continue_session(session_id: str):
         # Now resume from checkpoint by passing None
         # This tells LangGraph to load from checkpoint and continue execution
         print("▶️  Resuming from checkpoint")
-        for event in graph.stream(None, config=config):
-            if event:
-                for node_name, node_output in event.items():
-                    print(f"📦 Node {node_name} output: {list(node_output.keys())}")
+        async for event in graph.astream_events(None, config=config, version="v2"):
+            kind = event.get("event")
 
-                    # Get the status this node is entering
-                    next_status = node_output.get("status", "unknown")
+            # Node execution started
+            if kind == "on_chain_start":
+                metadata = event.get("metadata", {})
+                langgraph_node = metadata.get("langgraph_node")
 
-                    # Send "node_started" message FIRST (node is now active)
-                    print(f"📤 Sending node_started for {node_name} → {next_status}")
+                if langgraph_node:
+                    print(f"🟢 Node STARTING: {langgraph_node}")
+
+                    # Send node_started immediately when execution begins
                     await manager.send_update(
                         session_id,
                         {
                             "type": "node_started",
-                            "node": node_name,
-                            "status": next_status,
+                            "node": langgraph_node,
+                            "status": state.get("status", "running"),
                         },
                     )
 
-                    await asyncio.sleep(0.05)
+            # Node execution completed
+            elif kind == "on_chain_end":
+                metadata = event.get("metadata", {})
+                langgraph_node = metadata.get("langgraph_node")
 
-                    # Update state
-                    state.update(node_output)
-                    session["state"] = state
+                if langgraph_node:
+                    # Get the output from the node
+                    node_output = event.get("data", {}).get("output", {})
 
-                    current_status = state.get("status", "unknown")
-                    waiting = state.get("_waiting_for_human", False)
-                    checkpoint_type = state.get("_checkpoint_type")
-
-                    update = {
-                        "type": "node_complete",
-                        "node": node_name,
-                        "status": current_status,
-                        "waiting_for_human": waiting,
-                    }
-
-                    if waiting and checkpoint_type:
-                        update["checkpoint_type"] = checkpoint_type
-                        update["checkpoint_data"] = get_checkpoint_data(
-                            state, checkpoint_type
+                    if node_output and isinstance(node_output, dict):
+                        print(
+                            f"🔵 Node COMPLETED: {langgraph_node}, output keys: {list(node_output.keys())}"
                         )
 
-                    print(
-                        f"📤 Sending node_complete for {node_name}: waiting={waiting}"
-                    )
-                    await manager.send_update(session_id, update)
-                    await asyncio.sleep(0.05)
+                        # Update state with node output
+                        state.update(node_output)
+                        session["state"] = state
 
-                    if waiting:
-                        session["waiting_for_human"] = True
-                        session["checkpoint_type"] = checkpoint_type
-                        print(f"⏸️  Pausing at {checkpoint_type} checkpoint")
-                        return
+                        current_status = state.get("status", "unknown")
+                        waiting = state.get("_waiting_for_human", False)
+                        checkpoint_type = state.get("_checkpoint_type")
+
+                        # Send node_complete update
+                        update = {
+                            "type": "node_complete",
+                            "node": langgraph_node,
+                            "status": current_status,
+                            "waiting_for_human": waiting,
+                        }
+
+                        if waiting and checkpoint_type:
+                            update["checkpoint_type"] = checkpoint_type
+                            update["checkpoint_data"] = get_checkpoint_data(
+                                state, checkpoint_type
+                            )
+
+                        print(
+                            f"📤 Sending node_complete for {langgraph_node}: waiting={waiting}"
+                        )
+                        await manager.send_update(session_id, update)
+
+                        if waiting:
+                            session["waiting_for_human"] = True
+                            session["checkpoint_type"] = checkpoint_type
+                            print(f"⏸️  Pausing at {checkpoint_type} checkpoint")
+                            return
 
         # Complete
         session["status"] = "completed"
@@ -457,11 +459,6 @@ async def continue_session(session_id: str):
         )
 
 
-# ============================================================================
-# API ENDPOINTS
-# ============================================================================
-
-
 @app.get("/")
 async def root():
     return {
@@ -473,7 +470,6 @@ async def root():
 
 @app.post("/sessions/start", response_model=StartSessionResponse)
 async def start_session(request: StartSessionRequest):
-    """Start a new session."""
     session_id = str(uuid.uuid4())
 
     active_sessions[session_id] = {
@@ -500,7 +496,6 @@ async def start_session(request: StartSessionRequest):
 
 @app.websocket("/ws/{session_id}")
 async def websocket_endpoint(websocket: WebSocket, session_id: str):
-    """WebSocket endpoint for real-time updates."""
     await manager.connect(websocket, session_id)
 
     try:
@@ -531,7 +526,6 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
 
 @app.get("/sessions/{session_id}/status", response_model=SessionStatusResponse)
 async def get_session_status(session_id: str):
-    """Get session status."""
     if session_id not in active_sessions:
         raise HTTPException(status_code=404, detail="Session not found")
 
@@ -562,7 +556,6 @@ async def submit_feedback(
     checkpoint_type: str,
     feedback: HumanFeedbackRequest,
 ):
-    """Submit human feedback and continue execution."""
     if session_id not in active_sessions:
         raise HTTPException(status_code=404, detail="Session not found")
 
@@ -600,7 +593,6 @@ async def submit_feedback(
 
 @app.get("/sessions/{session_id}/result", response_model=SessionResult)
 async def get_session_result(session_id: str):
-    """Get final results."""
     if session_id not in active_sessions:
         raise HTTPException(status_code=404, detail="Session not found")
 
@@ -621,8 +613,8 @@ async def get_session_result(session_id: str):
 
 @app.get("/sessions")
 async def list_sessions():
-    """List all sessions."""
     sessions = []
+
     for session_id, session_data in active_sessions.items():
         sessions.append(
             {
@@ -638,7 +630,6 @@ async def list_sessions():
 
 @app.delete("/sessions/{session_id}")
 async def delete_session(session_id: str):
-    """Delete a session."""
     if session_id not in active_sessions:
         raise HTTPException(status_code=404, detail="Session not found")
 
@@ -651,7 +642,6 @@ async def delete_session(session_id: str):
 
 @app.get("/health")
 async def health_check():
-    """Health check."""
     return {
         "status": "healthy",
         "active_sessions": len(active_sessions),

@@ -6,7 +6,6 @@ interface Props {
   status?: string;
 }
 
-// These IDs must match the "status" values from backend/graph_async.py
 const nodes = [
   { id: "initializing", label: "Initializing" },
   { id: "input", label: "Input" },
@@ -31,18 +30,7 @@ const nodes = [
 export default function PipelineProgress({ currentNode, status }: Props) {
   const currentIndex = nodes.findIndex((n) => n.id === currentNode);
 
-  // Debug: log when currentNode changes
   useEffect(() => {
-    console.log(
-      "🔍 PipelineProgress - currentNode:",
-      currentNode,
-      "| index:",
-      currentIndex,
-      "| status:",
-      status,
-      "| type:",
-      typeof currentNode
-    );
     if (currentIndex === -1 && currentNode) {
       console.warn(
         "⚠️ Node not found in pipeline:",
@@ -60,7 +48,9 @@ export default function PipelineProgress({ currentNode, status }: Props) {
     }
 
     if (currentIndex === -1) return index === 0 ? "active" : "pending";
+
     if (index < currentIndex) return "completed";
+
     if (index === currentIndex) {
       if (node.checkpoint) return "checkpoint";
       return "active";
