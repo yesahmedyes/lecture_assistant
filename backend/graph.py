@@ -59,7 +59,7 @@ def build_graph(llm: BaseChatModel):
     Pipeline:
       input -> search_plan -> plan_draft -> plan_review -> (replan?) -> web_search
       -> extract -> prioritize -> claims_extract -> claims_review -> synthesize
-      -> review -> refine? -> tone_review? -> tone_apply? -> brief -> format
+      -> review -> refine? -> tone_review? -> tone_apply? -> generate_brief -> format
     """
     graph = StateGraph(LectureState)
 
@@ -422,7 +422,7 @@ def build_graph(llm: BaseChatModel):
         return {"outline": revised, "status": "tone_applying"}
 
     def final_brief_node(state: LectureState) -> LectureState:
-        print("🔵 brief")
+        print("🔵 generate_brief")
         prompt_text = load_prompt("final_brief.txt")
         prompt = ChatPromptTemplate.from_template(prompt_text)
         chain = prompt | llm | StrOutputParser()
@@ -461,9 +461,9 @@ def build_graph(llm: BaseChatModel):
         )
         return {"formatted_brief": formatted, "status": "formatting"}
 
-    def needs_revision(state: LectureState) -> Literal["refine", "brief"]:
+    def needs_revision(state: LectureState) -> Literal["refine", "generate_brief"]:
         feedback = (state.get("human_feedback") or "").strip().lower()
-        decision = "refine" if feedback and feedback != "approve" else "brief"
+        decision = "refine" if feedback and feedback != "approve" else "generate_brief"
         return decision
 
     graph.add_node("input", input_node)
@@ -480,7 +480,7 @@ def build_graph(llm: BaseChatModel):
     graph.add_node("refine", refinement_node)
     graph.add_node("tone_review", tone_review_node)
     graph.add_node("tone_apply", tone_apply_node)
-    graph.add_node("brief", final_brief_node)
+    graph.add_node("generate_brief", final_brief_node)
     graph.add_node("format", formatting_node)
 
     graph.set_entry_point("input")
@@ -497,7 +497,7 @@ def build_graph(llm: BaseChatModel):
     graph.add_edge("claims_review", "synthesize")
     graph.add_edge("synthesize", "review")
     graph.add_conditional_edges(
-        "review", needs_revision, {"refine": "refine", "brief": "brief"}
+        "review", needs_revision, {"refine": "refine", "brief": "generate_brief"}
     )
     graph.add_edge("refine", "tone_review")
 
@@ -508,10 +508,10 @@ def build_graph(llm: BaseChatModel):
         return decision
 
     graph.add_conditional_edges(
-        "tone_review", tone_next, {"apply": "tone_apply", "skip": "brief"}
+        "tone_review", tone_next, {"apply": "tone_apply", "skip": "generate_brief"}
     )
-    graph.add_edge("tone_apply", "brief")
-    graph.add_edge("brief", "format")
+    graph.add_edge("tone_apply", "generate_brief")
+    graph.add_edge("generate_brief", "format")
     graph.add_edge("format", END)
 
     memory = MemorySaver()
