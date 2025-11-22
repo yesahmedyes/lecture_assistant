@@ -497,7 +497,9 @@ def build_graph(llm: BaseChatModel):
     graph.add_edge("claims_review", "synthesize")
     graph.add_edge("synthesize", "review")
     graph.add_conditional_edges(
-        "review", needs_revision, {"refine": "refine", "brief": "generate_brief"}
+        "review",
+        needs_revision,
+        {"refine": "refine", "generate_brief": "generate_brief"},
     )
     graph.add_edge("refine", "tone_review")
 

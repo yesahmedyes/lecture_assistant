@@ -30,3 +30,9 @@
 {"ts": 1763832972.287824, "node": "hitl_plan_review", "inputs": {"plan_len": 948}, "outputs": {"decision": "approve"}}
 {"ts": 1763833413.438967, "node": "hitl_plan_review", "inputs": {"plan_len": 963}, "outputs": {"decision": "waiting"}}
 {"ts": 1763833416.4327528, "node": "hitl_plan_review", "inputs": {"plan_len": 963}, "outputs": {"decision": "approve"}}
+{"ts": 1763838367.900967, "node": "hitl_plan_review", "inputs": {"plan_len": 947}, "outputs": {"decision": "waiting"}}
+{"ts": 1763838374.9590888, "node": "hitl_plan_review", "inputs": {"plan_len": 947}, "outputs": {"decision": "approve"}}
+{"ts": 1763838659.8552551, "node": "hitl_plan_review", "inputs": {"plan_len": 948}, "outputs": {"decision": "waiting"}}
+{"ts": 1763838663.9496691, "node": "hitl_plan_review", "inputs": {"plan_len": 948}, "outputs": {"decision": "approve"}}
+{"ts": 1763838896.414541, "node": "hitl_plan_review", "inputs": {"plan_len": 883}, "outputs": {"decision": "waiting"}}
+{"ts": 1763838940.256257, "node": "hitl_plan_review", "inputs": {"plan_len": 883}, "outputs": {"decision": "approve"}}
