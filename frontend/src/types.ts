@@ -24,6 +24,7 @@ export interface CheckpointData {
   queries?: string[];
   claims?: Claim[];
   citation_map?: Record<string, { title: string; url: string }>;
+  outline?: string;
   outline_preview?: string;
   options: CheckpointOption[];
 }
@@ -85,4 +86,3 @@ export interface HumanFeedbackRequest {
   decision: string;
   additional_data?: Record<string, any>;
 }
-

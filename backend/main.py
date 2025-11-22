@@ -1,40 +1,91 @@
 from __future__ import annotations
 
-import json
 import os
 import uuid
+import asyncio
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 from .llm_factory import get_llm
-from .graph import build_graph, LectureState
+from .graph_async import build_graph_async, LectureState
 
 # Load environment variables
 load_dotenv(override=False)
 
 app = FastAPI(
     title="Lecture Assistant API",
-    description="Research assistant that generates lecture briefs with human-in-the-loop checkpoints",
-    version="1.0.0",
+    description="Research assistant with WebSocket-powered HITL",
+    version="2.0.0",
 )
 
-# CORS middleware for frontend
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change to specific origins in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# In-memory storage for active sessions (use Redis/DB in production)
+# Session storage (use Redis/DB in production)
 active_sessions: Dict[str, Dict[str, Any]] = {}
-session_logs: Dict[str, List[Dict[str, Any]]] = {}
+session_graphs: Dict[str, Any] = {}
+
+
+# ============================================================================
+# WEBSOCKET CONNECTION MANAGER
+# ============================================================================
+
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[str, List[WebSocket]] = {}
+
+    async def connect(self, websocket: WebSocket, session_id: str):
+        await websocket.accept()
+        if session_id not in self.active_connections:
+            self.active_connections[session_id] = []
+        self.active_connections[session_id].append(websocket)
+        print(
+            f"🔌 WebSocket connected for session {session_id[:8]} (total: {len(self.active_connections[session_id])})"
+        )
+
+    def disconnect(self, websocket: WebSocket, session_id: str):
+        if session_id in self.active_connections:
+            self.active_connections[session_id].remove(websocket)
+            if not self.active_connections[session_id]:
+                del self.active_connections[session_id]
+                print(f"🔌 All WebSockets disconnected for session {session_id[:8]}")
+
+    async def send_update(self, session_id: str, message: dict):
+        if session_id not in self.active_connections:
+            print(f"⚠️  No WebSocket connections for session {session_id[:8]}")
+            return
+
+        num_connections = len(self.active_connections[session_id])
+        print(
+            f"📡 Broadcasting to {num_connections} connection(s) for {session_id[:8]}: {message.get('type')}"
+        )
+
+        dead_connections = []
+        for connection in self.active_connections[session_id]:
+            try:
+                await connection.send_json(message)
+            except Exception as e:
+                print(f"❌ Failed to send to connection: {e}")
+                dead_connections.append(connection)
+
+        # Clean up dead connections
+        for conn in dead_connections:
+            self.disconnect(conn, session_id)
+
+
+manager = ConnectionManager()
 
 
 # ============================================================================
@@ -65,10 +116,8 @@ class SessionStatusResponse(BaseModel):
 
 
 class HumanFeedbackRequest(BaseModel):
-    decision: str = Field(..., description="Human decision (approve/feedback text)")
-    additional_data: Optional[Dict[str, Any]] = Field(
-        None, description="Additional context"
-    )
+    decision: str = Field(..., description="Human decision")
+    additional_data: Optional[Dict[str, Any]] = None
 
 
 class SessionResult(BaseModel):
@@ -82,29 +131,16 @@ class SessionResult(BaseModel):
     claims: Optional[List[Dict[str, Any]]]
 
 
-class LogEntry(BaseModel):
-    timestamp: float
-    node: str
-    inputs: Optional[Dict[str, Any]]
-    outputs: Optional[Dict[str, Any]]
-    prompt: Optional[str]
-    model: Optional[Dict[str, Any]]
-
-
-class LogsResponse(BaseModel):
-    session_id: str
-    logs: List[LogEntry]
-    node_trace: List[str]
-
-
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
 
 
-def get_checkpoint_data(state: LectureState, status: str) -> Optional[Dict[str, Any]]:
-    """Extract relevant data for human checkpoints."""
-    if status == "plan_review":
+def get_checkpoint_data(
+    state: Dict[str, Any], checkpoint_type: str
+) -> Optional[Dict[str, Any]]:
+    """Extract checkpoint data for frontend."""
+    if checkpoint_type == "plan_review":
         return {
             "type": "plan_review",
             "plan_summary": state.get("plan_summary", ""),
@@ -114,18 +150,17 @@ def get_checkpoint_data(state: LectureState, status: str) -> Optional[Dict[str, 
                 {"id": "revise", "label": "Revise plan", "requires_input": True},
             ],
         }
-    elif status == "claims_review":
-        claims = state.get("claims", [])[:6]
+    elif checkpoint_type == "claims_review":
         return {
             "type": "claims_review",
-            "claims": claims,
+            "claims": state.get("claims", [])[:6],
             "citation_map": state.get("citation_map", {}),
             "options": [
                 {"id": "approve", "label": "Approve claims"},
                 {"id": "flag", "label": "Flag claims", "requires_input": True},
             ],
         }
-    elif status == "tone_review":
+    elif checkpoint_type == "tone_review":
         return {
             "type": "tone_review",
             "outline_preview": state.get("outline", "")[:500],
@@ -134,30 +169,292 @@ def get_checkpoint_data(state: LectureState, status: str) -> Optional[Dict[str, 
                 {"id": "adjust", "label": "Adjust tone/focus", "requires_input": True},
             ],
         }
+    elif checkpoint_type == "review":
+        return {
+            "type": "review",
+            "outline": state.get("outline", ""),
+            "options": [
+                {"id": "approve", "label": "Approve outline"},
+                {"id": "revise", "label": "Request changes", "requires_input": True},
+            ],
+        }
     return None
 
 
-def load_session_logs(session_id: str) -> List[Dict[str, Any]]:
-    """Load logs from disk for a session."""
-    logs_dir = "logs"
-    if not os.path.exists(logs_dir):
-        return []
+async def run_session_step_by_step(session_id: str, request: StartSessionRequest):
+    """
+    Run the graph step by step, pausing at checkpoints.
+    Send updates via WebSocket.
+    """
+    try:
+        # Add delay to allow WebSocket to connect first
+        await asyncio.sleep(0.5)
 
-    all_logs = []
-    for filename in os.listdir(logs_dir):
-        if filename.endswith(".jsonl"):
-            filepath = os.path.join(logs_dir, filename)
-            with open(filepath, "r", encoding="utf-8") as f:
-                for line in f:
-                    try:
-                        entry = json.loads(line.strip())
-                        all_logs.append(entry)
-                    except json.JSONDecodeError:
-                        continue
+        session = active_sessions[session_id]
 
-    # Sort by timestamp
-    all_logs.sort(key=lambda x: x.get("ts", 0))
-    return all_logs
+        # Build graph
+        llm = get_llm(
+            model=request.model,
+            temperature=request.temperature,
+            seed=request.seed,
+        )
+        graph = build_graph_async(llm)
+        session_graphs[session_id] = graph
+
+        # Initial state - DO NOT set feedback to pending, let graph handle it
+        state: LectureState = {
+            "topic": request.topic,
+            "seed": request.seed,
+        }
+
+        session["state"] = state
+        session["status"] = "running"
+
+        print(f"🚀 Starting session {session_id[:8]}")
+
+        await manager.send_update(
+            session_id,
+            {
+                "type": "status_update",
+                "status": "running",
+                "current_node": "input",
+            },
+        )
+
+        # Run the graph with streaming
+        config = {
+            "recursion_limit": 50,
+            "configurable": {"thread_id": session_id},
+        }
+
+        # Stream events from the graph
+        for event in graph.stream(state, config=config):
+            # Update state
+            if event:
+                for node_name, node_output in event.items():
+                    print(f"📦 Node {node_name} output: {list(node_output.keys())}")
+
+                    # Get the status this node is entering
+                    next_status = node_output.get("status", "unknown")
+
+                    # Send "node_started" message FIRST (node is now active)
+                    print(f"📤 Sending node_started for {node_name} → {next_status}")
+                    await manager.send_update(
+                        session_id,
+                        {
+                            "type": "node_started",
+                            "node": node_name,
+                            "status": next_status,
+                        },
+                    )
+
+                    # Small delay to ensure message is sent
+                    await asyncio.sleep(0.05)
+
+                    # Update state
+                    state.update(node_output)
+                    session["state"] = state
+
+                    current_status = state.get("status", "unknown")
+                    waiting = state.get("_waiting_for_human", False)
+                    checkpoint_type = state.get("_checkpoint_type")
+
+                    # Send "node_complete" update
+                    update = {
+                        "type": "node_complete",
+                        "node": node_name,
+                        "status": current_status,
+                        "waiting_for_human": waiting,
+                    }
+
+                    if waiting and checkpoint_type:
+                        update["checkpoint_type"] = checkpoint_type
+                        update["checkpoint_data"] = get_checkpoint_data(
+                            state, checkpoint_type
+                        )
+
+                    print(
+                        f"📤 Sending node_complete for {node_name}: waiting={waiting}"
+                    )
+                    await manager.send_update(session_id, update)
+
+                    # Small delay to ensure message is sent
+                    await asyncio.sleep(0.05)
+
+                    # If waiting for human, pause execution
+                    if waiting:
+                        session["waiting_for_human"] = True
+                        session["checkpoint_type"] = checkpoint_type
+                        print(f"⏸️  Pausing at {checkpoint_type} checkpoint")
+                        return  # Exit and wait for feedback
+
+        # Execution complete
+        session["status"] = "completed"
+        session["completed_at"] = datetime.utcnow().isoformat()
+        session["waiting_for_human"] = False
+
+        print(f"✅ Session {session_id[:8]} complete")
+
+        await manager.send_update(
+            session_id,
+            {
+                "type": "session_complete",
+                "status": "completed",
+            },
+        )
+
+    except Exception as e:
+        print(f"❌ Error in session {session_id}: {e}")
+        import traceback
+
+        traceback.print_exc()
+
+        if session_id in active_sessions:
+            active_sessions[session_id]["status"] = "failed"
+            active_sessions[session_id]["error"] = str(e)
+
+        await manager.send_update(
+            session_id,
+            {
+                "type": "error",
+                "message": str(e),
+            },
+        )
+
+
+async def continue_session(session_id: str):
+    """Continue a paused session after receiving feedback."""
+    if session_id not in active_sessions:
+        print(f"⚠️  Session {session_id[:8]} not found")
+        return
+
+    session = active_sessions[session_id]
+    session["waiting_for_human"] = False
+    session["checkpoint_type"] = None
+
+    # Get the current state and graph
+    state = session.get("state", {})
+    if not state:
+        print(f"⚠️  No state found for session {session_id[:8]}")
+        return
+
+    # Clear the waiting flags so graph continues
+    state["_waiting_for_human"] = False
+    state["_checkpoint_type"] = None
+
+    print(f"▶️  Continuing session {session_id[:8]} from {state.get('status')}")
+
+    # Reuse the SAME graph instance to avoid restart
+    graph = session_graphs.get(session_id)
+    if not graph:
+        print("⚠️  No graph found, rebuilding...")
+        llm = get_llm(
+            model=session.get("model"),
+            temperature=session.get("temperature", 0.2),
+            seed=session.get("seed", 42),
+        )
+        graph = build_graph_async(llm)
+        session_graphs[session_id] = graph
+
+    # Continue execution from current state
+    config = {
+        "recursion_limit": 50,
+        "configurable": {"thread_id": session_id},
+    }
+
+    try:
+        # Update the checkpoint with the user's feedback
+        # This merges the feedback into the saved checkpoint state
+        print("📝 Updating checkpoint with feedback")
+        graph.update_state(config, state)
+
+        # Now resume from checkpoint by passing None
+        # This tells LangGraph to load from checkpoint and continue execution
+        print("▶️  Resuming from checkpoint")
+        for event in graph.stream(None, config=config):
+            if event:
+                for node_name, node_output in event.items():
+                    print(f"📦 Node {node_name} output: {list(node_output.keys())}")
+
+                    # Get the status this node is entering
+                    next_status = node_output.get("status", "unknown")
+
+                    # Send "node_started" message FIRST (node is now active)
+                    print(f"📤 Sending node_started for {node_name} → {next_status}")
+                    await manager.send_update(
+                        session_id,
+                        {
+                            "type": "node_started",
+                            "node": node_name,
+                            "status": next_status,
+                        },
+                    )
+
+                    await asyncio.sleep(0.05)
+
+                    # Update state
+                    state.update(node_output)
+                    session["state"] = state
+
+                    current_status = state.get("status", "unknown")
+                    waiting = state.get("_waiting_for_human", False)
+                    checkpoint_type = state.get("_checkpoint_type")
+
+                    update = {
+                        "type": "node_complete",
+                        "node": node_name,
+                        "status": current_status,
+                        "waiting_for_human": waiting,
+                    }
+
+                    if waiting and checkpoint_type:
+                        update["checkpoint_type"] = checkpoint_type
+                        update["checkpoint_data"] = get_checkpoint_data(
+                            state, checkpoint_type
+                        )
+
+                    print(
+                        f"📤 Sending node_complete for {node_name}: waiting={waiting}"
+                    )
+                    await manager.send_update(session_id, update)
+                    await asyncio.sleep(0.05)
+
+                    if waiting:
+                        session["waiting_for_human"] = True
+                        session["checkpoint_type"] = checkpoint_type
+                        print(f"⏸️  Pausing at {checkpoint_type} checkpoint")
+                        return
+
+        # Complete
+        session["status"] = "completed"
+        session["completed_at"] = datetime.utcnow().isoformat()
+
+        print(f"✅ Session {session_id[:8]} complete")
+
+        await manager.send_update(
+            session_id,
+            {
+                "type": "session_complete",
+                "status": "completed",
+            },
+        )
+
+    except Exception as e:
+        print(f"❌ Error continuing session {session_id}: {e}")
+        import traceback
+
+        traceback.print_exc()
+
+        session["status"] = "failed"
+        session["error"] = str(e)
+
+        await manager.send_update(
+            session_id,
+            {
+                "type": "error",
+                "message": str(e),
+            },
+        )
 
 
 # ============================================================================
@@ -167,25 +464,18 @@ def load_session_logs(session_id: str) -> List[Dict[str, Any]]:
 
 @app.get("/")
 async def root():
-    """Health check endpoint."""
     return {
         "name": "Lecture Assistant API",
-        "version": "1.0.0",
-        "status": "running",
+        "version": "2.0.0",
+        "features": ["websocket", "hitl", "streaming"],
     }
 
 
 @app.post("/sessions/start", response_model=StartSessionResponse)
-async def start_session(
-    request: StartSessionRequest, background_tasks: BackgroundTasks
-):
-    """
-    Start a new lecture research session.
-    The session will run in the background and pause at human checkpoints.
-    """
+async def start_session(request: StartSessionRequest):
+    """Start a new session."""
     session_id = str(uuid.uuid4())
 
-    # Initialize session
     active_sessions[session_id] = {
         "topic": request.topic,
         "status": "initializing",
@@ -198,8 +488,8 @@ async def start_session(
         "checkpoint_type": None,
     }
 
-    # Start async processing
-    background_tasks.add_task(run_session, session_id, request)
+    # Start execution in background
+    asyncio.create_task(run_session_step_by_step(session_id, request))
 
     return StartSessionResponse(
         session_id=session_id,
@@ -208,55 +498,40 @@ async def start_session(
     )
 
 
-async def run_session(session_id: str, request: StartSessionRequest):
-    """
-    Run the LangGraph pipeline for a session.
-    This runs in the background and pauses at checkpoints.
-    """
+@app.websocket("/ws/{session_id}")
+async def websocket_endpoint(websocket: WebSocket, session_id: str):
+    """WebSocket endpoint for real-time updates."""
+    await manager.connect(websocket, session_id)
+
     try:
-        session = active_sessions[session_id]
-
-        # Build graph
-        llm = get_llm(
-            model=request.model,
-            temperature=request.temperature,
-            seed=request.seed,
-        )
-        app_graph = build_graph(llm)
-
-        # Initial state
-        initial_state: LectureState = {
-            "topic": request.topic,
-            "seed": request.seed,
-        }
-
-        session["status"] = "running"
-
-        # Run graph step by step
-        config = {
-            "recursion_limit": 50,
-            "configurable": {"thread_id": session_id},
-        }
-
-        # For this implementation, we'll run the full graph
-        # In a production system, you'd want to implement step-by-step execution
-        # with proper checkpoint handling
-        final_state = app_graph.invoke(initial_state, config=config)
-
-        # Store final state
-        session["state"] = final_state
-        session["status"] = "completed"
-        session["completed_at"] = datetime.utcnow().isoformat()
-
-    except Exception as e:
+        # Send current status immediately
         if session_id in active_sessions:
-            active_sessions[session_id]["status"] = "failed"
-            active_sessions[session_id]["error"] = str(e)
+            session = active_sessions[session_id]
+            state = session.get("state", {})
+
+            await websocket.send_json(
+                {
+                    "type": "connected",
+                    "session_id": session_id,
+                    "status": session.get("status"),
+                    "current_node": state.get("status") if state else None,
+                    "waiting_for_human": session.get("waiting_for_human", False),
+                }
+            )
+
+        # Keep connection alive
+        while True:
+            data = await websocket.receive_text()
+            # Echo back (for ping/pong)
+            await websocket.send_json({"type": "pong", "data": data})
+
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, session_id)
 
 
 @app.get("/sessions/{session_id}/status", response_model=SessionStatusResponse)
 async def get_session_status(session_id: str):
-    """Get the current status of a session."""
+    """Get session status."""
     if session_id not in active_sessions:
         raise HTTPException(status_code=404, detail="Session not found")
 
@@ -264,15 +539,12 @@ async def get_session_status(session_id: str):
     state = session.get("state", {})
     current_status = state.get("status") if state else session.get("status")
 
-    # Determine if waiting for human input
-    waiting_statuses = ["plan_review", "claims_review", "review", "tone_review"]
-    waiting_for_human = current_status in waiting_statuses
+    waiting_for_human = session.get("waiting_for_human", False)
+    checkpoint_type = session.get("checkpoint_type")
 
     checkpoint_data = None
-    checkpoint_type = None
-    if waiting_for_human and state:
-        checkpoint_data = get_checkpoint_data(state, current_status)
-        checkpoint_type = current_status
+    if waiting_for_human and checkpoint_type and state:
+        checkpoint_data = get_checkpoint_data(state, checkpoint_type)
 
     return SessionStatusResponse(
         session_id=session_id,
@@ -290,18 +562,17 @@ async def submit_feedback(
     checkpoint_type: str,
     feedback: HumanFeedbackRequest,
 ):
-    """
-    Submit human feedback at a checkpoint.
-
-    checkpoint_type: plan_review, claims_review, review, tone_review
-    """
+    """Submit human feedback and continue execution."""
     if session_id not in active_sessions:
         raise HTTPException(status_code=404, detail="Session not found")
 
     session = active_sessions[session_id]
     state = session.get("state", {})
 
-    # Update state based on checkpoint type
+    if not state:
+        raise HTTPException(status_code=400, detail="Session state not available")
+
+    # Update state based on checkpoint
     if checkpoint_type == "plan_review":
         state["plan_feedback"] = feedback.decision
     elif checkpoint_type == "claims_review":
@@ -312,34 +583,29 @@ async def submit_feedback(
         state["tone_prefs"] = feedback.decision
     else:
         raise HTTPException(
-            status_code=400, detail=f"Unknown checkpoint type: {checkpoint_type}"
+            status_code=400, detail=f"Unknown checkpoint: {checkpoint_type}"
         )
 
     session["state"] = state
-    session["waiting_for_human"] = False
+
+    # Continue execution
+    asyncio.create_task(continue_session(session_id))
 
     return {
         "session_id": session_id,
         "checkpoint_type": checkpoint_type,
         "status": "feedback_received",
-        "message": "Feedback submitted successfully. Processing will continue.",
     }
 
 
 @app.get("/sessions/{session_id}/result", response_model=SessionResult)
 async def get_session_result(session_id: str):
-    """Get the final result of a completed session."""
+    """Get final results."""
     if session_id not in active_sessions:
         raise HTTPException(status_code=404, detail="Session not found")
 
     session = active_sessions[session_id]
     state = session.get("state", {})
-
-    if session.get("status") not in ["completed", "running"]:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Session is not complete. Current status: {session.get('status')}",
-        )
 
     return SessionResult(
         session_id=session_id,
@@ -353,41 +619,9 @@ async def get_session_result(session_id: str):
     )
 
 
-@app.get("/sessions/{session_id}/logs", response_model=LogsResponse)
-async def get_session_logs(session_id: str):
-    """Get all logs for a session."""
-    if session_id not in active_sessions:
-        raise HTTPException(status_code=404, detail="Session not found")
-
-    logs = load_session_logs(session_id)
-
-    # Extract node trace
-    node_trace = [log.get("node", "") for log in logs if log.get("node")]
-
-    # Format logs
-    formatted_logs = []
-    for log in logs:
-        formatted_logs.append(
-            LogEntry(
-                timestamp=log.get("ts", 0),
-                node=log.get("node", ""),
-                inputs=log.get("inputs"),
-                outputs=log.get("outputs"),
-                prompt=log.get("prompt"),
-                model=log.get("model"),
-            )
-        )
-
-    return LogsResponse(
-        session_id=session_id,
-        logs=formatted_logs,
-        node_trace=node_trace,
-    )
-
-
 @app.get("/sessions")
 async def list_sessions():
-    """List all active sessions."""
+    """List all sessions."""
     sessions = []
     for session_id, session_data in active_sessions.items():
         sessions.append(
@@ -409,22 +643,21 @@ async def delete_session(session_id: str):
         raise HTTPException(status_code=404, detail="Session not found")
 
     del active_sessions[session_id]
-    if session_id in session_logs:
-        del session_logs[session_id]
+    if session_id in session_graphs:
+        del session_graphs[session_id]
 
-    return {
-        "session_id": session_id,
-        "status": "deleted",
-        "message": "Session deleted successfully",
-    }
+    return {"session_id": session_id, "status": "deleted"}
 
 
 @app.get("/health")
 async def health_check():
-    """Detailed health check."""
+    """Health check."""
     return {
         "status": "healthy",
         "active_sessions": len(active_sessions),
+        "websocket_connections": sum(
+            len(conns) for conns in manager.active_connections.values()
+        ),
         "environment": {
             "tavily_api_key_set": bool(os.getenv("TAVILY_API_KEY")),
             "openai_api_key_set": bool(os.getenv("OPENAI_API_KEY")),
@@ -435,4 +668,4 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

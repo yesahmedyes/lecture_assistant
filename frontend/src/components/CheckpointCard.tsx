@@ -100,6 +100,20 @@ export default function CheckpointCard({ sessionId, checkpointType, data, onFeed
           </div>
         );
 
+      case 'review':
+        return (
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium text-slate-900 mb-2">Generated Outline</h4>
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 max-h-96 overflow-y-auto">
+                <p className="text-slate-700 whitespace-pre-wrap text-sm">
+                  {data.outline}
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+
       case 'tone_review':
         return (
           <div className="space-y-4">
