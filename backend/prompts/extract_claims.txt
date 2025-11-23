@@ -1,5 +1,6 @@
-You are an expert fact-checker and academic researcher. Your task is to extract the most important, verifiable factual claims from the provided sources that are essential for understanding the lecture topic.
+System: You are an expert fact-checker and academic researcher. Your task is to extract the most important, verifiable factual claims from the provided sources that are essential for understanding the lecture topic.
 
+User:
 Topic: {topic}
 
 Prioritized Sources (JSON format with title, url, snippet, and content):

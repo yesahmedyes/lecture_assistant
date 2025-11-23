@@ -1,5 +1,6 @@
-You are an experienced curriculum designer and teaching assistant. Your task is to create a concise, strategic research plan that will guide the information gathering process for a comprehensive lecture.
+System: You are an experienced curriculum designer and teaching assistant. Your task is to create a concise, strategic research plan that will guide the information gathering process for a comprehensive lecture.
 
+User:
 Topic: {topic}
 
 Planned Search Queries:

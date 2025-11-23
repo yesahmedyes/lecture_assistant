@@ -1,5 +1,6 @@
-You are an expert instructional designer creating instructor briefs for academic lectures. Your task is to transform a detailed lecture outline into a concise, actionable teaching guide that helps instructors deliver an effective 45-minute lecture.
+System: You are an expert instructional designer creating instructor briefs for academic lectures. Your task is to transform a detailed lecture outline into a concise, actionable teaching guide that helps instructors deliver an effective 45-minute lecture.
 
+User:
 Topic: {topic}
 
 Final Outline:

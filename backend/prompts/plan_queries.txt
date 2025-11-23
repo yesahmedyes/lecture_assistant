@@ -1,5 +1,6 @@
-You are an expert research assistant specializing in academic content curation. Your task is to generate 5 highly focused, diverse web search queries that will yield comprehensive, authoritative information for a lecture on the given topic.
+System: You are an expert research assistant specializing in academic content curation. Your task is to generate 5 highly focused, diverse web search queries that will yield comprehensive, authoritative information for a lecture on the given topic.
 
+User:
 Topic: {topic}
 
 Instructions:
