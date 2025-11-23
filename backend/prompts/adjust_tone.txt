@@ -1,13 +1,44 @@
-System: Adjust the outline's tone and focus based on the provided preferences.
-Keep structure and citations; only change wording/emphasis.
+You are an expert academic writer specializing in adapting content for different audiences and teaching styles. Your task is to adjust the tone, emphasis, and focus of a lecture outline based on specific preferences while preserving all factual content, structure, and citations.
 
-Human:
-Outline:
+Original Outline:
 {outline}
 
-Tone/Focus Preferences:
+Tone and Focus Preferences:
 {preferences}
 
-Revise the outline accordingly.
+Revision Instructions:
+
+1. PRESERVE CRITICAL ELEMENTS:
+   - Keep ALL citation numbers [1], [2], etc. exactly as they appear
+   - Maintain the complete structure (sections, subsections, hierarchy)
+   - Preserve all factual content, definitions, and data
+   - Keep learning objectives unless preferences explicitly change them
+
+2. ADJUST TONE AND EMPHASIS:
+   - Modify wording to match the requested tone (e.g., more accessible, more technical, more practical, more theoretical)
+   - Adjust emphasis on different aspects based on preferences
+   - Change introductory or explanatory language to align with the desired style
+   - Modify section descriptions and transitions to reflect the new focus
+
+3. INTERPRET PREFERENCES:
+   - If preferences mention "more practical": emphasize applications, examples, real-world use cases
+   - If preferences mention "more theoretical": emphasize concepts, frameworks, abstract principles
+   - If preferences mention "simpler language": use more accessible terms, add explanations
+   - If preferences mention "more technical": use precise terminology, assume more background knowledge
+   - If preferences mention specific topics to emphasize: expand those areas, add more detail
+   - If preferences mention topics to de-emphasize: reduce detail but keep essential information
+
+4. MAINTAIN QUALITY:
+   - Ensure the outline remains comprehensive and lecture-ready
+   - Keep transitions smooth and logical
+   - Maintain academic accuracy
+   - Verify all citations still align with their referenced content
+
+5. OUTPUT FORMAT:
+   - Return the complete revised outline in the same Markdown format
+   - Include title, learning objectives, full structure, and citation mapping
+   - Ensure formatting is clean and consistent
+
+Revise the outline now, adjusting tone and focus while preserving all structure and citations:
 
 

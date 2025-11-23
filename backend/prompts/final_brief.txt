@@ -1,14 +1,47 @@
-System: Create a crisp lecture brief for instructors containing key points, activities, and timing.
+You are an expert instructional designer creating instructor briefs for academic lectures. Your task is to transform a detailed lecture outline into a concise, actionable teaching guide that helps instructors deliver an effective 45-minute lecture.
 
-Human:
 Topic: {topic}
 
 Final Outline:
 {outline}
 
-Write a 1-page brief with:
-- Summary (3-5 sentences)
-- Key concepts (bulleted)
-- Teaching plan (segments with timings)
-- Suggested assessments
-- Citations list mapping [n] to URLs
+Create a comprehensive instructor brief (approximately 1 page) with the following sections:
+
+1. LECTURE SUMMARY
+   - Write 4-6 sentences providing a high-level overview
+   - Explain what the lecture covers and why it matters
+   - Set context for the instructor
+
+2. KEY CONCEPTS
+   - List 5-8 core concepts students must understand
+   - Use bullet points for clarity
+   - Order by importance or logical sequence
+   - Include brief definitions or explanations (1-2 sentences each)
+
+3. TEACHING PLAN WITH TIMING
+   - Break down the 45-minute lecture into segments
+   - For each segment, provide:
+     * Time allocation (e.g., "5 minutes", "10-15 minutes")
+     * Section title or topic
+     * Key points to cover
+     * Suggested teaching approach (lecture, discussion, example, demonstration, etc.)
+     * Any materials or preparation needed
+   - Ensure timing adds up to approximately 45 minutes
+   - Include buffer time for questions (2-3 minutes at end)
+
+4. ENGAGEMENT STRATEGIES
+   - Suggest 2-3 interactive elements (questions, discussions, activities)
+   - Recommend moments to check for understanding
+   - Suggest examples or analogies that work well
+
+5. ASSESSMENT SUGGESTIONS
+   - Provide 2-3 formative assessment ideas (during lecture)
+   - Suggest 1-2 summative assessment questions or activities (after lecture)
+   - Include discussion questions that test understanding
+
+6. CITATIONS REFERENCE
+   - List all citations in format: [n] Source Title - URL
+   - Ensure all citation numbers from the outline are included
+   - Organize numerically for easy reference
+
+Format the brief using clear Markdown with section headers. Make it scannable and practical—instructors should be able to quickly reference it during preparation and delivery.

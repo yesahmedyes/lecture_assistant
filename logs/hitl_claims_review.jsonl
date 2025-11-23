@@ -14,3 +14,8 @@
 {"ts": 1763838809.2621949, "node": "hitl_claims_review", "inputs": {"num_claims": 5}, "outputs": {"decision": "approve"}}
 {"ts": 1763839021.661304, "node": "hitl_claims_review", "inputs": {"num_claims": 5}, "outputs": {"decision": "waiting"}}
 {"ts": 1763839032.183054, "node": "hitl_claims_review", "inputs": {"num_claims": 5}, "outputs": {"decision": "approve"}}
+{"ts": 1763839529.2624638, "node": "hitl_claims_review", "inputs": {"num_claims": 5}, "outputs": {"decision": "approve"}}
+{"ts": 1763882912.208345, "node": "hitl_claims_review", "inputs": {"num_claims": 5}, "outputs": {"decision": "approve"}}
+{"ts": 1763883308.1063092, "node": "hitl_claims_review", "inputs": {"num_claims": 5}, "outputs": {"decision": "2 unclear"}}
+{"ts": 1763883842.958552, "node": "hitl_claims_review", "inputs": {"num_claims": 5}, "outputs": {"decision": "approve"}}
+{"ts": 1763885228.5846176, "node": "hitl_claims_review", "inputs": {"num_claims": 5}, "outputs": {"decision": "approve"}}

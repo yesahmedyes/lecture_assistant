@@ -103,7 +103,10 @@ def build_graph(llm: BaseChatModel):
         topic = state["topic"]
         extra = state.get("search_queries") or []
         num_queries = len(extra)
-        results = research_topic(topic, extra_queries=extra, per_query=6)
+        # Reduced per_query from 6 to 3 and set max_total_results to 20 for faster extraction
+        results = research_topic(
+            topic, extra_queries=extra, per_query=3, max_total_results=20
+        )
         num_results = len(results)
         print(f"🔵 web_search ({num_queries} queries → {num_results} results)")
         log_event(

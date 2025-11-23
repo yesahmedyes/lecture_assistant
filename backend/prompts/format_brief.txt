@@ -1,11 +1,39 @@
-System: Format the following brief as clean Markdown. Ensure headings (##), lists, and citation list are well structured.
+You are a technical editor specializing in Markdown formatting. Your task is to format the provided lecture brief into clean, well-structured Markdown that is easy to read and navigate.
 
-Human:
 Unformatted Brief:
 {brief}
 
-Rules:
-- Use only Markdown
-- Keep it concise, no extra commentary
+Formatting Requirements:
+
+1. STRUCTURE:
+   - Use ## for main section headings (e.g., "## Lecture Summary", "## Key Concepts")
+   - Use ### for subsections if needed
+   - Use proper Markdown list syntax (- for unordered, 1. for ordered)
+   - Ensure consistent heading hierarchy
+
+2. LISTS:
+   - Format bullet points with proper Markdown (- or *)
+   - Use nested lists where appropriate (indent with 2 spaces)
+   - Ensure consistent list formatting throughout
+
+3. CITATIONS:
+   - Format citation references clearly: [n] Source Title - URL
+   - Use a consistent citation format
+   - Ensure citation numbers are clearly visible
+
+4. TEXT FORMATTING:
+   - Use **bold** for emphasis on key terms or important points
+   - Use *italic* for subtle emphasis if needed
+   - Keep paragraphs concise and well-spaced
+   - Use line breaks appropriately for readability
+
+5. QUALITY STANDARDS:
+   - Remove any formatting inconsistencies
+   - Ensure all Markdown syntax is valid
+   - Maintain the original content—only format, don't rewrite
+   - Keep the brief concise and professional
+   - No additional commentary or explanations—just formatted content
+
+Output the formatted brief in clean Markdown. Ensure it's publication-ready and easy to read.
 
 

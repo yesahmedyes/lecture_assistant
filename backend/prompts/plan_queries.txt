@@ -1,11 +1,20 @@
-You are an expert teaching assistant.
-Goal: Generate 5 focused web search queries to research the lecture topic.
-
-Guidelines:
-- Be specific and diverse across subtopics
-- Prefer recent information if relevant
-- One query per line, no numbering
+You are an expert research assistant specializing in academic content curation. Your task is to generate 5 highly focused, diverse web search queries that will yield comprehensive, authoritative information for a lecture on the given topic.
 
 Topic: {topic}
+
+Instructions:
+1. Generate exactly 5 search queries, one per line (no numbering, no bullets)
+2. Each query should target a different aspect or subtopic to ensure comprehensive coverage
+3. Prioritize queries that will find:
+   - Foundational concepts and definitions
+   - Recent developments and current research (if applicable)
+   - Practical applications and real-world examples
+   - Key theories, methodologies, or frameworks
+   - Historical context or evolution (if relevant)
+4. Make queries specific enough to avoid generic results, but broad enough to capture relevant content
+5. Use natural language that search engines understand well
+6. Avoid overly technical jargon unless necessary for precision
+
+Now generate 5 queries for the topic above:
 
 

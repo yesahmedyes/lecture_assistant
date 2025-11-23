@@ -11,3 +11,8 @@
 {"ts": 1763838859.655228, "node": "hitl_review", "inputs": {"outline_len": 3986}, "outputs": {"feedback": "approve"}}
 {"ts": 1763839055.0685508, "node": "hitl_review", "inputs": {"outline_len": 4131}, "outputs": {"feedback": "waiting"}}
 {"ts": 1763839076.077997, "node": "hitl_review", "inputs": {"outline_len": 4131}, "outputs": {"feedback": "approve"}}
+{"ts": 1763839565.6585243, "node": "hitl_review", "inputs": {"outline_len": 3879}, "outputs": {"feedback": "approve"}}
+{"ts": 1763883047.6521153, "node": "hitl_review", "inputs": {"outline_len": 4305}, "outputs": {"feedback": "approve"}}
+{"ts": 1763883375.1916516, "node": "hitl_review", "inputs": {"outline_len": 3791}, "outputs": {"feedback": "Add math"}}
+{"ts": 1763883938.5659728, "node": "hitl_review", "inputs": {"outline_len": 3870}, "outputs": {"feedback": "math-heavy"}}
+{"ts": 1763885466.6409945, "node": "hitl_review", "inputs": {"outline_len": 5912}, "outputs": {"feedback": "tone"}}

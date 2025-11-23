@@ -36,3 +36,8 @@
 {"ts": 1763838663.9496691, "node": "hitl_plan_review", "inputs": {"plan_len": 948}, "outputs": {"decision": "approve"}}
 {"ts": 1763838896.414541, "node": "hitl_plan_review", "inputs": {"plan_len": 883}, "outputs": {"decision": "waiting"}}
 {"ts": 1763838940.256257, "node": "hitl_plan_review", "inputs": {"plan_len": 883}, "outputs": {"decision": "approve"}}
+{"ts": 1763839452.1286938, "node": "hitl_plan_review", "inputs": {"plan_len": 857}, "outputs": {"decision": "approve"}}
+{"ts": 1763882745.1579864, "node": "hitl_plan_review", "inputs": {"plan_len": 975}, "outputs": {"decision": "approve"}}
+{"ts": 1763883183.6021557, "node": "hitl_plan_review", "inputs": {"plan_len": 932}, "outputs": {"decision": "approve"}}
+{"ts": 1763883753.0213115, "node": "hitl_plan_review", "inputs": {"plan_len": 996}, "outputs": {"decision": "approve"}}
+{"ts": 1763885105.3825612, "node": "hitl_plan_review", "inputs": {"plan_len": 2004}, "outputs": {"decision": "approve"}}

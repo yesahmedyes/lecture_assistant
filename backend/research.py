@@ -48,10 +48,14 @@ def web_search(query: str, max_results: int = 8) -> List[SearchResult]:
 
 
 def research_topic(
-    topic: str, extra_queries: List[str] | None = None, per_query: int = 6
+    topic: str,
+    extra_queries: List[str] | None = None,
+    per_query: int = 6,
+    max_total_results: int = 20,
 ) -> List[Dict[str, str]]:
     """
     Produce a merged list of sources for a topic by running multiple queries.
+    Stops collecting once max_total_results is reached.
     """
     queries: List[str] = [
         f"{topic} overview",
@@ -64,7 +68,13 @@ def research_topic(
     collected: List[Dict[str, str]] = []
     seen_links = set()
     for q in queries:
+        # Stop if we've reached the maximum
+        if len(collected) >= max_total_results:
+            break
         for s in web_search(q, max_results=per_query):
+            # Stop if we've reached the maximum
+            if len(collected) >= max_total_results:
+                break
             if s.link in seen_links:
                 continue
             seen_links.add(s.link)
