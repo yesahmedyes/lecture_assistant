@@ -1,61 +1,19 @@
 import { CheckCircle2, Circle, Loader2, Pause } from "lucide-react";
-import { useEffect } from "react";
+import type { NodeVisit } from "../types";
 
 interface Props {
-  currentNode?: string;
+  nodeVisits: NodeVisit[];
+  nodeLabelMap: Record<string, string>;
   status?: string;
 }
 
-const nodes = [
-  { id: "initializing", label: "Initializing" },
-  { id: "input", label: "Input" },
-  { id: "search_planning", label: "Search Plan" },
-  { id: "plan_drafting", label: "Plan Draft" },
-  { id: "plan_review", label: "Plan Review", checkpoint: true },
-  { id: "searching", label: "Web Search" },
-  { id: "extracting", label: "Extract" },
-  { id: "prioritizing", label: "Prioritize" },
-  { id: "claims_extracting", label: "Claims Extract" },
-  { id: "claims_review", label: "Claims Review", checkpoint: true },
-  { id: "synthesizing", label: "Synthesize" },
-  { id: "review", label: "Review", checkpoint: true },
-  { id: "refining", label: "Refine" },
-  { id: "tone_review", label: "Tone Review", checkpoint: true },
-  { id: "tone_applying", label: "Tone Apply" },
-  { id: "final", label: "Final Brief" },
-  { id: "formatting", label: "Format" },
-  { id: "completed", label: "Complete" },
-];
-
-export default function PipelineProgress({ currentNode, status }: Props) {
-  const currentIndex = nodes.findIndex((n) => n.id === currentNode);
-
-  useEffect(() => {
-    if (currentIndex === -1 && currentNode) {
-      console.warn(
-        "⚠️ Node not found in pipeline:",
-        currentNode,
-        "| Available nodes:",
-        nodes.map((n) => n.id)
-      );
-    }
-  }, [currentNode, status, currentIndex]);
-
-  const getNodeStatus = (index: number, node: (typeof nodes)[0]) => {
-    // If pipeline is completed, mark all nodes up to and including the last one as completed
-    if (status === "completed") {
-      return index <= currentIndex ? "completed" : "pending";
-    }
-
-    if (currentIndex === -1) return index === 0 ? "active" : "pending";
-
-    if (index < currentIndex) return "completed";
-
-    if (index === currentIndex) {
-      if (node.checkpoint) return "checkpoint";
-      return "active";
-    }
-    return "pending";
+export default function PipelineProgress({
+  nodeVisits,
+  nodeLabelMap,
+  status,
+}: Props) {
+  const getNodeLabel = (node: string): string => {
+    return nodeLabelMap[node] || node;
   };
 
   return (
@@ -72,57 +30,57 @@ export default function PipelineProgress({ currentNode, status }: Props) {
       </h3>
 
       <div className="space-y-2">
-        {nodes.map((node, index) => {
-          const nodeStatus = getNodeStatus(index, node);
+        {nodeVisits.length === 0 ? (
+          <div className="text-center py-8 text-slate-400 text-sm">
+            Waiting for pipeline to start...
+          </div>
+        ) : (
+          nodeVisits.map((visit) => {
+            const isActive = visit.status === "active";
+            const isCompleted = visit.status === "completed";
+            const isCheckpoint = visit.status === "checkpoint";
 
-          return (
-            <div
-              key={node.id}
-              className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${
-                nodeStatus === "active" || nodeStatus === "checkpoint"
-                  ? "bg-primary-50 border border-primary-200"
-                  : ""
-              }`}
-            >
-              {nodeStatus === "completed" ? (
-                <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
-              ) : nodeStatus === "active" ? (
-                <Loader2 className="w-4 h-4 text-primary-600 animate-spin flex-shrink-0" />
-              ) : nodeStatus === "checkpoint" ? (
-                <Pause className="w-4 h-4 text-orange-600 flex-shrink-0" />
-              ) : (
-                <Circle className="w-4 h-4 text-slate-300 flex-shrink-0" />
-              )}
-
-              <span
-                className={`text-sm ${
-                  nodeStatus === "completed"
-                    ? "text-slate-600"
-                    : nodeStatus === "active" || nodeStatus === "checkpoint"
-                    ? "text-slate-900 font-medium"
-                    : "text-slate-400"
+            return (
+              <div
+                key={visit.id}
+                className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${
+                  isActive || isCheckpoint
+                    ? "bg-primary-50 border border-primary-200"
+                    : ""
                 }`}
               >
-                {node.label}
-              </span>
+                {isCompleted ? (
+                  <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                ) : isActive ? (
+                  <Loader2 className="w-4 h-4 text-primary-600 animate-spin flex-shrink-0" />
+                ) : isCheckpoint ? (
+                  <Pause className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                ) : (
+                  <Circle className="w-4 h-4 text-slate-300 flex-shrink-0" />
+                )}
 
-              {node.checkpoint && nodeStatus === "checkpoint" && (
-                <span className="ml-auto status-badge bg-orange-50 text-orange-600">
-                  HITL
+                <span
+                  className={`text-sm ${
+                    isCompleted
+                      ? "text-slate-600"
+                      : isActive || isCheckpoint
+                      ? "text-slate-900 font-medium"
+                      : "text-slate-400"
+                  }`}
+                >
+                  {getNodeLabel(visit.node)}
                 </span>
-              )}
-            </div>
-          );
-        })}
-      </div>
 
-      {/* {status === "completed" && (
-        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-sm font-medium text-green-900">
-            ✓ Pipeline Complete
-          </p>
-        </div>
-      )} */}
+                {visit.isCheckpoint && isCheckpoint && (
+                  <span className="ml-auto status-badge bg-orange-50 text-orange-600">
+                    HITL
+                  </span>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }

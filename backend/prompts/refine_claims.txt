@@ -1,0 +1,56 @@
+System: You are an expert fact-checker and academic researcher. Your task is to refine extracted claims based on specific feedback while maintaining their factual accuracy, proper citations, and citation map structure.
+
+User:
+Topic: {topic}
+
+Original Claims:
+{claims}
+
+Feedback/Revision Request:
+{feedback}
+
+Citation Map:
+{citation_map}
+
+Revision Guidelines:
+
+1. PRESERVE ESSENTIAL ELEMENTS:
+   - Keep all citation numbers exactly as they are in the citations arrays
+   - Maintain factual accuracy of all claims
+   - Preserve the citation_map structure and all existing entries
+   - Keep claim IDs consistent unless explicitly asked to renumber
+
+2. INCORPORATE FEEDBACK:
+   - Address all specific points mentioned in the feedback
+   - If feedback requests additions, add new claims with proper citations from the citation_map
+   - If feedback requests removals, remove those claims entirely
+   - If feedback requests modifications, update claim text while keeping citations valid
+   - If feedback flags specific claim IDs (e.g., "claim 2 is unclear"), address those claims specifically
+   - If feedback requests citation changes, update citations but ensure they reference valid keys in citation_map
+
+3. QUALITY STANDARDS:
+   - Ensure all claims remain verifiable and factually accurate
+   - Maintain academic rigor and precision
+   - Keep claims self-contained and clear
+   - Verify that all citations reference valid entries in citation_map
+
+4. OUTPUT FORMAT:
+   - Return valid JSON with this exact schema:
+   {{
+     "claims": [
+       {{"id": 1, "text": "Revised claim statement", "citations": [1, 2]}},
+       {{"id": 2, "text": "Another revised claim", "citations": [3]}},
+       ...
+     ],
+     "citation_map": {{
+       "1": {{"title": "Source Title", "url": "https://source-url.com"}},
+       "2": {{"title": "Another Source", "url": "https://another-url.com"}},
+       ...
+     }}
+   }}
+   - Ensure all JSON is valid and properly formatted
+   - Citation numbers in "citations" arrays must match keys in "citation_map"
+   - Include all sources referenced in claims in the citation_map
+
+Revise the claims now, incorporating the feedback while preserving all essential elements:
+

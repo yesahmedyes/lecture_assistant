@@ -115,6 +115,7 @@ class SessionResult(BaseModel):
     status: str
     final_brief: Optional[str]
     formatted_brief: Optional[str]
+    slides: Optional[str]
     outline: Optional[str]
     sources: Optional[List[Dict[str, str]]]
     claims: Optional[List[Dict[str, Any]]]
@@ -149,7 +150,7 @@ def get_checkpoint_data(
             "type": "tone_review",
             "outline_preview": state.get("outline", "")[:500],
             "options": [
-                {"id": "skip", "label": "Skip tone adjustment"},
+                {"id": "skip", "label": "Continue"},
                 {"id": "adjust", "label": "Adjust tone/focus", "requires_input": True},
             ],
         }
@@ -605,6 +606,7 @@ async def get_session_result(session_id: str):
         status=session.get("status", "unknown"),
         final_brief=state.get("brief"),
         formatted_brief=state.get("formatted_brief"),
+        slides=state.get("slides"),
         outline=state.get("outline"),
         sources=state.get("prioritized_sources"),
         claims=state.get("claims"),

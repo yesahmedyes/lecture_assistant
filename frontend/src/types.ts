@@ -47,6 +47,7 @@ export interface SessionResult {
   status: string;
   final_brief?: string;
   formatted_brief?: string;
+  slides?: string;
   outline?: string;
   sources?: Source[];
   claims?: Claim[];
@@ -85,4 +86,13 @@ export interface StartSessionRequest {
 export interface HumanFeedbackRequest {
   decision: string;
   additional_data?: Record<string, any>;
+}
+
+export interface NodeVisit {
+  id: string; // Unique identifier: timestamp + node name + visit count
+  node: string; // Node name (e.g., "input", "search_plan", "plan_review")
+  status: "active" | "completed" | "checkpoint"; // Current status
+  timestamp: number; // When the node started
+  isCheckpoint: boolean; // Whether this is a HITL checkpoint node
+  checkpointType?: string; // If checkpoint, the type (plan_review, claims_review, review, tone_review)
 }

@@ -1,3 +1,35 @@
 {"ts": 1763883435.2968907, "node": "hitl_tone_review", "inputs": {"outline_len": 4638}, "outputs": {"tone_prefs": "math-heavy"}}
 {"ts": 1763883976.081626, "node": "hitl_tone_review", "inputs": {"outline_len": 3862}, "outputs": {"tone_prefs": "math-heavy"}}
 {"ts": 1763885531.6677866, "node": "hitl_tone_review", "inputs": {"outline_len": 6488}, "outputs": {"tone_prefs": "math-heavy"}}
+{"ts": 1763891800.002966, "node": "hitl_tone_review", "inputs": {"outline_len": 5238}, "outputs": {"tone_prefs": "skip"}}
+{"ts": 1763898890.263532, "node": "hitl_tone_review", "inputs": {"outline_len": 4866}, "outputs": {"tone_prefs": "industry focus"}}
+{"ts": 1763899662.859041, "node": "hitl_tone_review", "inputs": {"outline_len": 7697}, "outputs": {"tone_prefs": "indsutry focus"}}
+{"ts": 1763900335.419344, "node": "hitl_tone_review", "inputs": {"outline_len": 4767}, "outputs": {"tone_prefs": "skip"}}
+{"ts": 1763902845.870475, "node": "hitl_tone_review", "inputs": {"outline_len": 5858}, "outputs": {"tone_prefs": "skip"}}
+{"ts": 1763906041.708873, "node": "hitl_tone_review", "inputs": {"outline_len": 5861}, "outputs": {"tone_prefs": "skip"}}
+{"ts": 1763906519.209661, "node": "hitl_tone_review", "inputs": {"outline_len": 6710}, "outputs": {"tone_prefs": "skip"}}
+{"ts": 1763906818.692971, "node": "hitl_tone_review", "inputs": {"outline_len": 4565}, "outputs": {"tone_prefs": "waiting"}}
+{"ts": 1763906829.382411, "node": "hitl_tone_review", "inputs": {"outline_len": 4565}, "outputs": {"tone_prefs": "More formal"}}
+{"ts": 1763906853.734451, "node": "hitl_tone_review", "inputs": {"outline_len": 5324}, "outputs": {"tone_prefs": "waiting"}}
+{"ts": 1763906898.9342961, "node": "hitl_tone_review", "inputs": {"outline_len": 5324}, "outputs": {"tone_prefs": "approve"}}
+{"ts": 1763907112.9728498, "node": "hitl_tone_review", "inputs": {"outline_len": 5131}, "outputs": {"tone_prefs": "waiting"}}
+{"ts": 1763907122.183373, "node": "hitl_tone_review", "inputs": {"outline_len": 5131}, "outputs": {"tone_prefs": "Causual"}}
+{"ts": 1763907150.208384, "node": "hitl_tone_review", "inputs": {"outline_len": 6242}, "outputs": {"tone_prefs": "waiting"}}
+{"ts": 1763907185.516103, "node": "hitl_tone_review", "inputs": {"outline_len": 6242}, "outputs": {"tone_prefs": "approve"}}
+{"ts": 1763907216.258451, "node": "hitl_tone_review", "inputs": {"outline_len": 6487}, "outputs": {"tone_prefs": "waiting"}}
+{"ts": 1763907411.950655, "node": "hitl_tone_review", "inputs": {"outline_len": 5195}, "outputs": {"tone_prefs": "waiting"}}
+{"ts": 1763907413.949342, "node": "hitl_tone_review", "inputs": {"outline_len": 5195}, "outputs": {"tone_prefs": "approve"}}
+{"ts": 1763907981.3727129, "node": "hitl_tone_review", "inputs": {"outline_len": 5460}, "outputs": {"tone_prefs": "waiting"}}
+{"ts": 1763907986.961615, "node": "hitl_tone_review", "inputs": {"outline_len": 5460}, "outputs": {"tone_prefs": "More formal"}}
+{"ts": 1763908020.174279, "node": "hitl_tone_review", "inputs": {"outline_len": 6884}, "outputs": {"tone_prefs": "waiting"}}
+{"ts": 1763908026.867718, "node": "hitl_tone_review", "inputs": {"outline_len": 6884}, "outputs": {"tone_prefs": "approve"}}
+{"ts": 1763908052.1270778, "node": "hitl_tone_review", "inputs": {"outline_len": 6901}, "outputs": {"tone_prefs": "waiting"}}
+{"ts": 1763908057.292651, "node": "hitl_tone_review", "inputs": {"outline_len": 6901}, "outputs": {"tone_prefs": "approve"}}
+{"ts": 1763908663.438257, "node": "hitl_tone_review", "inputs": {"outline_len": 4817}, "outputs": {"tone_prefs": "waiting"}}
+{"ts": 1763908666.355537, "node": "hitl_tone_review", "inputs": {"outline_len": 4817}, "outputs": {"tone_prefs": "skip"}}
+{"ts": 1763909329.390233, "node": "hitl_tone_review", "inputs": {"outline_len": 8003}, "outputs": {"tone_prefs": "waiting"}}
+{"ts": 1763909341.5248132, "node": "hitl_tone_review", "inputs": {"outline_len": 8003}, "outputs": {"tone_prefs": "More casual. Like talking to a friend"}}
+{"ts": 1763909382.40892, "node": "hitl_tone_review", "inputs": {"outline_len": 8441}, "outputs": {"tone_prefs": "waiting"}}
+{"ts": 1763909386.182434, "node": "hitl_tone_review", "inputs": {"outline_len": 8441}, "outputs": {"tone_prefs": "skip"}}
+{"ts": 1763910865.210562, "node": "hitl_tone_review", "inputs": {"outline_len": 5907}, "outputs": {"tone_prefs": "waiting"}}
+{"ts": 1763910867.55713, "node": "hitl_tone_review", "inputs": {"outline_len": 5907}, "outputs": {"tone_prefs": "skip"}}

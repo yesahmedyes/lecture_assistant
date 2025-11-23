@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { PauseCircle, Send } from 'lucide-react';
-import { sessionApi } from '../api';
-import type { CheckpointData } from '../types';
-import toast from 'react-hot-toast';
+import { useState } from "react";
+import { PauseCircle, Send } from "lucide-react";
+import { sessionApi } from "../api";
+import type { CheckpointData } from "../types";
+import toast from "react-hot-toast";
 
 interface Props {
   sessionId: string;
@@ -11,28 +11,35 @@ interface Props {
   onFeedbackSubmitted: () => void;
 }
 
-export default function CheckpointCard({ sessionId, checkpointType, data, onFeedbackSubmitted }: Props) {
-  const [selectedOption, setSelectedOption] = useState<string>('');
-  const [feedbackText, setFeedbackText] = useState('');
+export default function CheckpointCard({
+  sessionId,
+  checkpointType,
+  data,
+  onFeedbackSubmitted,
+}: Props) {
+  const [selectedOption, setSelectedOption] = useState<string>("");
+  const [feedbackText, setFeedbackText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
     if (!selectedOption) {
-      toast.error('Please select an option');
+      toast.error("Please select an option");
       return;
     }
 
     const selectedOpt = data.options.find((o) => o.id === selectedOption);
     if (selectedOpt?.requires_input && !feedbackText.trim()) {
-      toast.error('Please provide feedback');
+      toast.error("Please provide feedback");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const decision = selectedOption === 'approve' || selectedOption === 'skip'
-        ? 'approve'
-        : feedbackText.trim();
+      // Preserve the selected option value (approve, skip, etc.) or use feedback text
+      const decision =
+        selectedOption === "approve" || selectedOption === "skip"
+          ? selectedOption // Send "approve" or "skip" as-is
+          : feedbackText.trim();
 
       await sessionApi.submitFeedback(sessionId, checkpointType, {
         decision,
@@ -40,8 +47,8 @@ export default function CheckpointCard({ sessionId, checkpointType, data, onFeed
 
       onFeedbackSubmitted();
     } catch (error) {
-      console.error('Error submitting feedback:', error);
-      toast.error('Failed to submit feedback');
+      console.error("Error submitting feedback:", error);
+      toast.error("Failed to submit feedback");
     } finally {
       setIsSubmitting(false);
     }
@@ -49,23 +56,32 @@ export default function CheckpointCard({ sessionId, checkpointType, data, onFeed
 
   const renderContent = () => {
     switch (data.type) {
-      case 'plan_review':
+      case "plan_review":
         return (
           <div className="space-y-4">
             <div>
               <h4 className="font-medium text-slate-900 mb-2">Research Plan</h4>
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                <p className="text-slate-700 whitespace-pre-wrap">{data.plan_summary}</p>
+                <p className="text-slate-700 whitespace-pre-wrap">
+                  {data.plan_summary}
+                </p>
               </div>
             </div>
 
             {data.queries && data.queries.length > 0 && (
               <div>
-                <h4 className="font-medium text-slate-900 mb-2">Search Queries</h4>
+                <h4 className="font-medium text-slate-900 mb-2">
+                  Search Queries
+                </h4>
                 <ul className="space-y-1">
                   {data.queries.map((query, i) => (
-                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                      <span className="text-primary-600 font-medium">{i + 1}.</span>
+                    <li
+                      key={i}
+                      className="text-sm text-slate-600 flex items-start gap-2"
+                    >
+                      <span className="text-primary-600 font-medium">
+                        {i + 1}.
+                      </span>
                       {query}
                     </li>
                   ))}
@@ -75,36 +91,37 @@ export default function CheckpointCard({ sessionId, checkpointType, data, onFeed
           </div>
         );
 
-      case 'claims_review':
+      case "claims_review":
         return (
           <div className="space-y-4">
-            <h4 className="font-medium text-slate-900 mb-2">Extracted Claims</h4>
+            <h4 className="font-medium text-slate-900 mb-2">
+              Extracted Claims
+            </h4>
             <div className="space-y-3">
               {data.claims?.slice(0, 6).map((claim) => (
-                <div key={claim.id} className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                  <p className="text-slate-900 mb-2">
-                    <span className="font-semibold text-primary-600">[{claim.id}]</span> {claim.text}
+                <div
+                  key={claim.id}
+                  className="bg-slate-50 p-4 rounded-lg border border-slate-200"
+                >
+                  <p className="text-slate-900">
+                    <span className="font-semibold text-primary-600">
+                      [{claim.id}]
+                    </span>{" "}
+                    {claim.text}
                   </p>
-                  {claim.citations && claim.citations.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {claim.citations.map((cite, i) => (
-                        <span key={i} className="status-badge bg-blue-50 text-blue-700 text-xs">
-                          {cite}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
           </div>
         );
 
-      case 'review':
+      case "review":
         return (
           <div className="space-y-4">
             <div>
-              <h4 className="font-medium text-slate-900 mb-2">Generated Outline</h4>
+              <h4 className="font-medium text-slate-900 mb-2">
+                Generated Outline
+              </h4>
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 max-h-96 overflow-y-auto">
                 <p className="text-slate-700 whitespace-pre-wrap text-sm">
                   {data.outline}
@@ -114,11 +131,13 @@ export default function CheckpointCard({ sessionId, checkpointType, data, onFeed
           </div>
         );
 
-      case 'tone_review':
+      case "tone_review":
         return (
           <div className="space-y-4">
             <div>
-              <h4 className="font-medium text-slate-900 mb-2">Outline Preview</h4>
+              <h4 className="font-medium text-slate-900 mb-2">
+                Outline Preview
+              </h4>
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 max-h-64 overflow-y-auto">
                 <p className="text-slate-700 whitespace-pre-wrap text-sm">
                   {data.outline_preview}...
@@ -142,15 +161,21 @@ export default function CheckpointCard({ sessionId, checkpointType, data, onFeed
           <PauseCircle className="w-6 h-6 text-orange-600" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Checkpoint: {checkpointType.replace('_', ' ')}</h2>
-          <p className="text-sm text-slate-600">Human review required to continue</p>
+          <h2 className="text-xl font-bold text-slate-900">
+            Checkpoint: {checkpointType.replace("_", " ")}
+          </h2>
+          <p className="text-sm text-slate-600">
+            Human review required to continue
+          </p>
         </div>
       </div>
 
       {renderContent()}
 
       <div className="mt-6 pt-6 border-t border-slate-200">
-        <h4 className="font-medium text-slate-900 mb-3">What would you like to do?</h4>
+        <h4 className="font-medium text-slate-900 mb-3">
+          What would you like to do?
+        </h4>
 
         <div className="space-y-3 mb-4">
           {data.options.map((option) => (
@@ -158,8 +183,8 @@ export default function CheckpointCard({ sessionId, checkpointType, data, onFeed
               key={option.id}
               className={`flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
                 selectedOption === option.id
-                  ? 'border-primary-500 bg-primary-50'
-                  : 'border-slate-200 hover:border-slate-300'
+                  ? "border-primary-500 bg-primary-50"
+                  : "border-slate-200 hover:border-slate-300"
               }`}
             >
               <input
@@ -179,8 +204,13 @@ export default function CheckpointCard({ sessionId, checkpointType, data, onFeed
 
         {selectedOpt?.requires_input && (
           <div className="mb-4">
-            <label htmlFor="feedback" className="block text-sm font-medium text-slate-700 mb-2">
-              {data.type === 'claims_review' ? 'Issues/Notes (e.g., "3 may be outdated")' : 'Your feedback'}
+            <label
+              htmlFor="feedback"
+              className="block text-sm font-medium text-slate-700 mb-2"
+            >
+              {data.type === "claims_review"
+                ? 'Issues/Notes (e.g., "3 may be outdated")'
+                : "Your feedback"}
             </label>
             <textarea
               id="feedback"
@@ -199,10 +229,9 @@ export default function CheckpointCard({ sessionId, checkpointType, data, onFeed
           className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50"
         >
           <Send className="w-4 h-4" />
-          {isSubmitting ? 'Submitting...' : 'Submit Feedback & Continue'}
+          {isSubmitting ? "Submitting..." : "Submit Feedback & Continue"}
         </button>
       </div>
     </div>
   );
 }
-

@@ -16,3 +16,47 @@
 {"ts": 1763883375.1916516, "node": "hitl_review", "inputs": {"outline_len": 3791}, "outputs": {"feedback": "Add math"}}
 {"ts": 1763883938.5659728, "node": "hitl_review", "inputs": {"outline_len": 3870}, "outputs": {"feedback": "math-heavy"}}
 {"ts": 1763885466.6409945, "node": "hitl_review", "inputs": {"outline_len": 5912}, "outputs": {"feedback": "tone"}}
+{"ts": 1763890393.199426, "node": "hitl_review", "inputs": {"outline_len": 5477}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763890397.978457, "node": "hitl_review", "inputs": {"outline_len": 5477}, "outputs": {"feedback": "approve"}}
+{"ts": 1763890747.886642, "node": "hitl_review", "inputs": {"outline_len": 6259}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763890757.13921, "node": "hitl_review", "inputs": {"outline_len": 6259}, "outputs": {"feedback": "approve"}}
+{"ts": 1763891754.151424, "node": "hitl_review", "inputs": {"outline_len": 5322}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763891773.642009, "node": "hitl_review", "inputs": {"outline_len": 5322}, "outputs": {"feedback": "Make it simpler"}}
+{"ts": 1763898874.282519, "node": "hitl_review", "inputs": {"outline_len": 4866}, "outputs": {"feedback": "approve"}}
+{"ts": 1763899580.300568, "node": "hitl_review", "inputs": {"outline_len": 5540}, "outputs": {"feedback": "make it math heavier"}}
+{"ts": 1763899650.206159, "node": "hitl_review", "inputs": {"outline_len": 7697}, "outputs": {"feedback": "approve"}}
+{"ts": 1763900285.830559, "node": "hitl_review", "inputs": {"outline_len": 4767}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763900335.4157681, "node": "hitl_review", "inputs": {"outline_len": 4767}, "outputs": {"feedback": "approve"}}
+{"ts": 1763902370.321611, "node": "hitl_review", "inputs": {"outline_len": 5981}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763902385.072823, "node": "hitl_review", "inputs": {"outline_len": 5981}, "outputs": {"feedback": "more mathematical"}}
+{"ts": 1763902412.22989, "node": "hitl_review", "inputs": {"outline_len": 7385}, "outputs": {"feedback": "more mathematical"}}
+{"ts": 1763902450.7400231, "node": "hitl_review", "inputs": {"outline_len": 8387}, "outputs": {"feedback": "more mathematical"}}
+{"ts": 1763902490.7431848, "node": "hitl_review", "inputs": {"outline_len": 9275}, "outputs": {"feedback": "more mathematical"}}
+{"ts": 1763902538.579712, "node": "hitl_review", "inputs": {"outline_len": 9735}, "outputs": {"feedback": "more mathematical"}}
+{"ts": 1763902705.4430778, "node": "hitl_review", "inputs": {"outline_len": 5303}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763902841.435477, "node": "hitl_review", "inputs": {"outline_len": 5858}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763902845.8672059, "node": "hitl_review", "inputs": {"outline_len": 5858}, "outputs": {"feedback": "approve"}}
+{"ts": 1763905990.6371148, "node": "hitl_review", "inputs": {"outline_len": 4945}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763906002.357017, "node": "hitl_review", "inputs": {"outline_len": 4945}, "outputs": {"feedback": "Add more math"}}
+{"ts": 1763906033.504986, "node": "hitl_review", "inputs": {"outline_len": 5861}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763906041.7057831, "node": "hitl_review", "inputs": {"outline_len": 5861}, "outputs": {"feedback": "approve"}}
+{"ts": 1763906431.6290948, "node": "hitl_review", "inputs": {"outline_len": 5690}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763906450.1774411, "node": "hitl_review", "inputs": {"outline_len": 5690}, "outputs": {"feedback": "More math"}}
+{"ts": 1763906499.984791, "node": "hitl_review", "inputs": {"outline_len": 6710}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763906519.205562, "node": "hitl_review", "inputs": {"outline_len": 6710}, "outputs": {"feedback": "approve"}}
+{"ts": 1763906815.694409, "node": "hitl_review", "inputs": {"outline_len": 4565}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763906818.6898859, "node": "hitl_review", "inputs": {"outline_len": 4565}, "outputs": {"feedback": "approve"}}
+{"ts": 1763907087.8479738, "node": "hitl_review", "inputs": {"outline_len": 5131}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763907112.967814, "node": "hitl_review", "inputs": {"outline_len": 5131}, "outputs": {"feedback": "approve"}}
+{"ts": 1763907400.074781, "node": "hitl_review", "inputs": {"outline_len": 5195}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763907411.9456158, "node": "hitl_review", "inputs": {"outline_len": 5195}, "outputs": {"feedback": "approve"}}
+{"ts": 1763907978.676699, "node": "hitl_review", "inputs": {"outline_len": 5460}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763907981.369638, "node": "hitl_review", "inputs": {"outline_len": 5460}, "outputs": {"feedback": "approve"}}
+{"ts": 1763908655.068807, "node": "hitl_review", "inputs": {"outline_len": 4817}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763908663.435646, "node": "hitl_review", "inputs": {"outline_len": 4817}, "outputs": {"feedback": "approve"}}
+{"ts": 1763909274.6734452, "node": "hitl_review", "inputs": {"outline_len": 5709}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763909291.3613062, "node": "hitl_review", "inputs": {"outline_len": 5709}, "outputs": {"feedback": "More about programming"}}
+{"ts": 1763909325.500329, "node": "hitl_review", "inputs": {"outline_len": 8003}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763909329.386969, "node": "hitl_review", "inputs": {"outline_len": 8003}, "outputs": {"feedback": "approve"}}
+{"ts": 1763910861.4693172, "node": "hitl_review", "inputs": {"outline_len": 5907}, "outputs": {"feedback": "waiting"}}
+{"ts": 1763910865.206938, "node": "hitl_review", "inputs": {"outline_len": 5907}, "outputs": {"feedback": "approve"}}

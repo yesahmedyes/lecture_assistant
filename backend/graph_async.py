@@ -34,6 +34,7 @@ class LectureState(TypedDict, total=False):
     tone_prefs: str
     brief: str
     formatted_brief: str
+    slides: str
     status: Literal[
         "input",
         "search_planning",
@@ -44,6 +45,7 @@ class LectureState(TypedDict, total=False):
         "prioritizing",
         "claims_extracting",
         "claims_review",
+        "claims_refining",
         "synthesizing",
         "review",
         "refining",
@@ -51,6 +53,7 @@ class LectureState(TypedDict, total=False):
         "tone_applying",
         "final",
         "formatting",
+        "generating_slides",
         "completed",
     ]
     # Control flags for web-based HITL
@@ -101,8 +104,10 @@ def build_graph_async(llm: BaseChatModel):
                 "model": get_model_metadata(llm),
             },
         )
+        # Clear plan_feedback when replanning so plan_review_node will wait for human input again
         return {
             "search_queries": queries[:5],
+            "plan_feedback": "pending",  # Reset to pending so plan_review will ask for feedback again
             "status": "search_planning",
             "_waiting_for_human": False,
         }
@@ -111,10 +116,7 @@ def build_graph_async(llm: BaseChatModel):
         topic = state["topic"]
         extra = state.get("search_queries") or []
         num_queries = len(extra)
-        # Reduced per_query from 6 to 3 and set max_total_results to 20 for faster extraction
-        results = research_topic(
-            topic, extra_queries=extra, per_query=3, max_total_results=20
-        )
+        results = research_topic(topic, extra_queries=extra, per_query=6)
         num_results = len(results)
         print(f"🔵 web_search ({num_queries} queries → {num_results} results)")
         log_event(
@@ -329,6 +331,73 @@ def build_graph_async(llm: BaseChatModel):
             "_checkpoint_type": None,
         }
 
+    def claims_refine_node(state: LectureState) -> LectureState:
+        print("🔵 claims_refine")
+        feedback = state.get("claims_feedback", "")
+        claims = state.get("claims", [])
+        citation_map = state.get("citation_map", {})
+
+        if not feedback or feedback.lower() in ("approve", "pending"):
+            return {
+                "claims": claims,
+                "citation_map": citation_map,
+                "status": "claims_refining",
+                "_waiting_for_human": False,
+            }
+
+        # Format claims for prompt
+        claims_text = "\n".join(
+            [
+                f"[{c.get('id')}] {c.get('text', '')} (sources: {c.get('citations', [])})"
+                for c in claims
+            ]
+        )
+
+        import json as _json
+
+        prompt_text = load_prompt("refine_claims.txt")
+        prompt = ChatPromptTemplate.from_template(prompt_text)
+        chain = prompt | llm | StrOutputParser()
+
+        raw = chain.invoke(
+            {
+                "topic": state["topic"],
+                "claims": claims_text,
+                "feedback": feedback,
+                "citation_map": _json.dumps(citation_map, indent=2),
+            }
+        )
+
+        try:
+            obj = _json.loads(raw)
+            revised_claims = obj.get("claims") or claims
+            revised_citation_map = obj.get("citation_map") or citation_map
+        except Exception:
+            # If parsing fails, return original claims
+            revised_claims = claims
+            revised_citation_map = citation_map
+
+        log_event(
+            "claims_refinement",
+            {
+                "inputs": {"feedback": feedback[:500], "num_claims": len(claims)},
+                "prompt": prompt_text,
+                "outputs": {
+                    "num_claims": len(revised_claims),
+                    "claims_preview": [c.get("text") for c in revised_claims[:3]],
+                },
+                "model": get_model_metadata(llm),
+            },
+        )
+        # Reset claims_feedback to pending so claims_review_node will ask for feedback again
+        return {
+            "claims": revised_claims,
+            "citation_map": revised_citation_map,
+            "claims_feedback": "pending",  # Reset so claims_review will wait for human input again
+            "status": "claims_refining",
+            "_waiting_for_human": False,
+        }
+
     def review_node(state: LectureState) -> LectureState:
         print("🔵 review (HITL checkpoint)")
         existing_feedback = state.get("human_feedback", "")
@@ -388,8 +457,10 @@ def build_graph_async(llm: BaseChatModel):
                 "model": get_model_metadata(llm),
             },
         )
+        # Reset human_feedback to pending so review_node will ask for feedback again
         return {
             "outline": revised,
+            "human_feedback": "pending",  # Reset so review will wait for human input again
             "status": "refining",
             "_waiting_for_human": False,
         }
@@ -398,7 +469,8 @@ def build_graph_async(llm: BaseChatModel):
         print("🔵 tone_review (HITL checkpoint - optional)")
         existing = (state.get("tone_prefs") or "").strip()
 
-        if existing == "pending":
+        # Wait for human input if tone_prefs is empty or pending
+        if not existing or existing == "pending":
             log_event(
                 "hitl_tone_review",
                 {
@@ -420,8 +492,9 @@ def build_graph_async(llm: BaseChatModel):
                 "outputs": {"tone_prefs": existing or "skip"},
             },
         )
+        # Preserve "skip" explicitly - don't convert to empty string
         return {
-            "tone_prefs": existing or "",
+            "tone_prefs": existing if existing else "skip",
             "status": "tone_review",
             "_waiting_for_human": False,
             "_checkpoint_type": None,
@@ -431,8 +504,10 @@ def build_graph_async(llm: BaseChatModel):
         print("🔵 tone_apply")
         prefs = (state.get("tone_prefs") or "").strip()
         if not prefs or prefs in ("skip", "pending"):
+            # If skipped or no preferences, don't apply and preserve the skip status
             return {
                 "outline": state.get("outline", ""),
+                "tone_prefs": "skip" if prefs == "skip" else "",  # Preserve skip status
                 "status": "tone_applying",
                 "_waiting_for_human": False,
             }
@@ -454,8 +529,10 @@ def build_graph_async(llm: BaseChatModel):
                 "model": get_model_metadata(llm),
             },
         )
+        # Reset tone_prefs to pending so tone_review_node will ask for feedback again
         return {
             "outline": revised,
+            "tone_prefs": "pending",  # Reset so tone_review will wait for human input again
             "status": "tone_applying",
             "_waiting_for_human": False,
         }
@@ -504,16 +581,68 @@ def build_graph_async(llm: BaseChatModel):
         )
         return {
             "formatted_brief": formatted,
+            "status": "formatting",
+            "_waiting_for_human": False,
+        }
+
+    def generate_slides_node(state: LectureState) -> LectureState:
+        print("🔵 generate_slides")
+        prompt_text = load_prompt("generate_slides.txt")
+        prompt = ChatPromptTemplate.from_template(prompt_text)
+        chain = prompt | llm | StrOutputParser()
+        brief = state.get("formatted_brief") or state.get("brief", "")
+        sources = state.get("prioritized_sources", [])
+        claims = state.get("claims", [])
+
+        # Format sources and claims for the prompt
+        sources_text = "\n".join(
+            [f"- {s.get('title', 'Unknown')}: {s.get('url', '')}" for s in sources[:12]]
+        )
+        claims_text = "\n".join(
+            [f"[{c.get('id')}] {c.get('text', '')}" for c in claims]
+        )
+
+        slides = chain.invoke(
+            {
+                "topic": state["topic"],
+                "brief": brief,
+                "sources": sources_text,
+                "claims": claims_text,
+            }
+        )
+        log_event(
+            "generate_slides",
+            {
+                "inputs": {"topic": state["topic"], "brief_len": len(brief)},
+                "prompt": prompt_text,
+                "outputs": {
+                    "slides_len": len(slides),
+                    "slides_preview": slides[:1200],
+                },
+                "model": get_model_metadata(llm),
+            },
+        )
+        return {
+            "slides": slides,
             "status": "completed",
             "_waiting_for_human": False,
         }
 
-    def needs_revision(state: LectureState) -> Literal["refine", "generate_brief"]:
+    def needs_claims_revision(state: LectureState) -> Literal["refine", "continue"]:
+        feedback = (state.get("claims_feedback") or "").strip().lower()
+        decision = (
+            "refine"
+            if feedback and feedback not in ("approve", "pending")
+            else "continue"
+        )
+        return decision
+
+    def needs_revision(state: LectureState) -> Literal["refine", "continue"]:
         feedback = (state.get("human_feedback") or "").strip().lower()
         decision = (
             "refine"
             if feedback and feedback not in ("approve", "pending")
-            else "generate_brief"
+            else "continue"
         )
         return decision
 
@@ -527,6 +656,7 @@ def build_graph_async(llm: BaseChatModel):
     graph.add_node("prioritize", prioritize_node)
     graph.add_node("claims_extract", claims_extract_node)
     graph.add_node("claims_review", claims_review_node)
+    graph.add_node("claims_refine", claims_refine_node)
     graph.add_node("synthesize", synthesize_node)
     graph.add_node("review", review_node)
     graph.add_node("refine", refinement_node)
@@ -534,6 +664,7 @@ def build_graph_async(llm: BaseChatModel):
     graph.add_node("tone_apply", tone_apply_node)
     graph.add_node("generate_brief", final_brief_node)
     graph.add_node("format", formatting_node)
+    graph.add_node("generate_slides", generate_slides_node)
 
     graph.set_entry_point("input")
     graph.add_edge("input", "search_plan")
@@ -546,14 +677,19 @@ def build_graph_async(llm: BaseChatModel):
     graph.add_edge("extract", "prioritize")
     graph.add_edge("prioritize", "claims_extract")
     graph.add_edge("claims_extract", "claims_review")
-    graph.add_edge("claims_review", "synthesize")
+    graph.add_conditional_edges(
+        "claims_review",
+        needs_claims_revision,
+        {"refine": "claims_refine", "continue": "synthesize"},
+    )
+    graph.add_edge("claims_refine", "claims_review")
     graph.add_edge("synthesize", "review")
     graph.add_conditional_edges(
         "review",
         needs_revision,
-        {"refine": "refine", "generate_brief": "generate_brief"},
+        {"refine": "refine", "continue": "tone_review"},
     )
-    graph.add_edge("refine", "tone_review")
+    graph.add_edge("refine", "review")
 
     def tone_next(state: LectureState) -> Literal["apply", "skip"]:
         prefs = (state.get("tone_prefs") or "").strip()
@@ -563,9 +699,10 @@ def build_graph_async(llm: BaseChatModel):
     graph.add_conditional_edges(
         "tone_review", tone_next, {"apply": "tone_apply", "skip": "generate_brief"}
     )
-    graph.add_edge("tone_apply", "generate_brief")
+    graph.add_edge("tone_apply", "tone_review")
     graph.add_edge("generate_brief", "format")
-    graph.add_edge("format", END)
+    graph.add_edge("format", "generate_slides")
+    graph.add_edge("generate_slides", END)
 
     # CRITICAL: Add checkpointer for pause/resume functionality
     memory = MemorySaver()

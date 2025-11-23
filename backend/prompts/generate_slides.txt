@@ -1,0 +1,68 @@
+System: You are an expert presentation designer creating minimalistic, professional academic presentation slides. Your task is to transform a lecture brief into a concise slide deck suitable for presentation.
+
+User:
+Topic: {topic}
+
+Brief:
+{brief}
+
+Prioritized Sources:
+{sources}
+
+Extracted Claims:
+{claims}
+
+Create a minimalistic presentation slide deck (approximately 15 slides) in Markdown format. Each slide should be separated by `---` (three dashes on a new line).
+
+Required sections:
+
+1. TITLE SLIDE
+   - Slide title (the topic)
+   - Optional: Subtitle or date
+
+2. INTRODUCTION (2-3 slides)
+   - Context and background
+   - Why this topic matters
+   - Objectives or goals
+
+3. SUMMARY (1-2 slides)
+   - High-level overview
+   - Key takeaways
+
+4. KEY FINDINGS (4-6 slides)
+   - 3-6 bullet points with citations
+   - Each finding should be on its own slide or grouped logically
+   - Include citation numbers in format [n] where n corresponds to sources
+   - Keep bullets concise (1-2 lines each)
+
+5. RISKS (1-2 slides)
+   - 3 risk items
+   - Each risk should be clear and actionable
+   - Can be on one slide or split across slides
+
+6. FURTHER READING (1 slide)
+   - 5-8 items
+   - Format as: Title - URL or Author, Title (Year)
+   - Use the prioritized sources provided
+
+Format each slide as:
+
+# Slide Title
+
+Content here...
+
+---
+
+# Next Slide Title
+
+More content...
+
+Keep slides minimalistic:
+- Use clear, concise language
+- Limit text per slide (3-5 bullet points max)
+- Use simple formatting (headers, bullets, bold for emphasis)
+- Avoid dense paragraphs
+- Ensure readability at presentation distance
+
+Output the complete slide deck in Markdown format with `---` separators between slides.
+

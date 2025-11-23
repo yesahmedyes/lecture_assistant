@@ -41,3 +41,58 @@
 {"ts": 1763883183.6021557, "node": "hitl_plan_review", "inputs": {"plan_len": 932}, "outputs": {"decision": "approve"}}
 {"ts": 1763883753.0213115, "node": "hitl_plan_review", "inputs": {"plan_len": 996}, "outputs": {"decision": "approve"}}
 {"ts": 1763885105.3825612, "node": "hitl_plan_review", "inputs": {"plan_len": 2004}, "outputs": {"decision": "approve"}}
+{"ts": 1763890255.976848, "node": "hitl_plan_review", "inputs": {"plan_len": 1875}, "outputs": {"decision": "waiting"}}
+{"ts": 1763890260.501419, "node": "hitl_plan_review", "inputs": {"plan_len": 1875}, "outputs": {"decision": "approve"}}
+{"ts": 1763890557.342916, "node": "hitl_plan_review", "inputs": {"plan_len": 2051}, "outputs": {"decision": "waiting"}}
+{"ts": 1763890565.7545989, "node": "hitl_plan_review", "inputs": {"plan_len": 2051}, "outputs": {"decision": "approve"}}
+{"ts": 1763891487.9724932, "node": "hitl_plan_review", "inputs": {"plan_len": 2000}, "outputs": {"decision": "waiting"}}
+{"ts": 1763891498.0330062, "node": "hitl_plan_review", "inputs": {"plan_len": 2000}, "outputs": {"decision": "approve"}}
+{"ts": 1763892513.6920571, "node": "hitl_plan_review", "inputs": {"plan_len": 1917}, "outputs": {"decision": "approve"}}
+{"ts": 1763898695.097708, "node": "hitl_plan_review", "inputs": {"plan_len": 1718}, "outputs": {"decision": "approve"}}
+{"ts": 1763899170.103691, "node": "hitl_plan_review", "inputs": {"plan_len": 1945}, "outputs": {"decision": "more beginner firendly"}}
+{"ts": 1763899188.659329, "node": "hitl_plan_review", "inputs": {"plan_len": 1903}, "outputs": {"decision": "approve"}}
+{"ts": 1763899968.3080199, "node": "hitl_plan_review", "inputs": {"plan_len": 1815}, "outputs": {"decision": "waiting"}}
+{"ts": 1763900153.7759051, "node": "hitl_plan_review", "inputs": {"plan_len": 1815}, "outputs": {"decision": "approve"}}
+{"ts": 1763900546.160695, "node": "hitl_plan_review", "inputs": {"plan_len": 1822}, "outputs": {"decision": "waiting"}}
+{"ts": 1763902226.399646, "node": "hitl_plan_review", "inputs": {"plan_len": 1904}, "outputs": {"decision": "waiting"}}
+{"ts": 1763902231.6567261, "node": "hitl_plan_review", "inputs": {"plan_len": 1904}, "outputs": {"decision": "approve"}}
+{"ts": 1763902500.5056021, "node": "hitl_plan_review", "inputs": {"plan_len": 1869}, "outputs": {"decision": "waiting"}}
+{"ts": 1763902515.6683269, "node": "hitl_plan_review", "inputs": {"plan_len": 1869}, "outputs": {"decision": "For undergratuate level"}}
+{"ts": 1763902523.610582, "node": "hitl_plan_review", "inputs": {"plan_len": 2014}, "outputs": {"decision": "For undergratuate level"}}
+{"ts": 1763902534.025988, "node": "hitl_plan_review", "inputs": {"plan_len": 1936}, "outputs": {"decision": "For undergratuate level"}}
+{"ts": 1763902542.335244, "node": "hitl_plan_review", "inputs": {"plan_len": 1820}, "outputs": {"decision": "For undergratuate level"}}
+{"ts": 1763902552.701296, "node": "hitl_plan_review", "inputs": {"plan_len": 1986}, "outputs": {"decision": "For undergratuate level"}}
+{"ts": 1763902596.4576719, "node": "hitl_plan_review", "inputs": {"plan_len": 1879}, "outputs": {"decision": "waiting"}}
+{"ts": 1763902602.8335721, "node": "hitl_plan_review", "inputs": {"plan_len": 1879}, "outputs": {"decision": "approve"}}
+{"ts": 1763902746.685695, "node": "hitl_plan_review", "inputs": {"plan_len": 2031}, "outputs": {"decision": "waiting"}}
+{"ts": 1763902750.839036, "node": "hitl_plan_review", "inputs": {"plan_len": 2031}, "outputs": {"decision": "approve"}}
+{"ts": 1763902957.92725, "node": "hitl_plan_review", "inputs": {"plan_len": 1955}, "outputs": {"decision": "waiting"}}
+{"ts": 1763902979.152799, "node": "hitl_plan_review", "inputs": {"plan_len": 1955}, "outputs": {"decision": "Focus on Dynamic Programming"}}
+{"ts": 1763902991.7787158, "node": "hitl_plan_review", "inputs": {"plan_len": 2249}, "outputs": {"decision": "Focus on Dynamic Programming"}}
+{"ts": 1763903003.244755, "node": "hitl_plan_review", "inputs": {"plan_len": 2226}, "outputs": {"decision": "Focus on Dynamic Programming"}}
+{"ts": 1763905532.133358, "node": "hitl_plan_review", "inputs": {"plan_len": 1861}, "outputs": {"decision": "waiting"}}
+{"ts": 1763905539.742656, "node": "hitl_plan_review", "inputs": {"plan_len": 1861}, "outputs": {"decision": "More math"}}
+{"ts": 1763905549.153454, "node": "hitl_plan_review", "inputs": {"plan_len": 1968}, "outputs": {"decision": "waiting"}}
+{"ts": 1763905560.281852, "node": "hitl_plan_review", "inputs": {"plan_len": 1968}, "outputs": {"decision": "For high school students"}}
+{"ts": 1763905572.497995, "node": "hitl_plan_review", "inputs": {"plan_len": 1931}, "outputs": {"decision": "waiting"}}
+{"ts": 1763905588.185517, "node": "hitl_plan_review", "inputs": {"plan_len": 1931}, "outputs": {"decision": "approve"}}
+{"ts": 1763905837.01383, "node": "hitl_plan_review", "inputs": {"plan_len": 1694}, "outputs": {"decision": "waiting"}}
+{"ts": 1763905839.43769, "node": "hitl_plan_review", "inputs": {"plan_len": 1694}, "outputs": {"decision": "approve"}}
+{"ts": 1763906133.968284, "node": "hitl_plan_review", "inputs": {"plan_len": 1981}, "outputs": {"decision": "waiting"}}
+{"ts": 1763906147.95242, "node": "hitl_plan_review", "inputs": {"plan_len": 1981}, "outputs": {"decision": "approve"}}
+{"ts": 1763906655.236681, "node": "hitl_plan_review", "inputs": {"plan_len": 1604}, "outputs": {"decision": "waiting"}}
+{"ts": 1763906681.850435, "node": "hitl_plan_review", "inputs": {"plan_len": 1604}, "outputs": {"decision": "approve"}}
+{"ts": 1763906975.990162, "node": "hitl_plan_review", "inputs": {"plan_len": 1629}, "outputs": {"decision": "waiting"}}
+{"ts": 1763906998.027643, "node": "hitl_plan_review", "inputs": {"plan_len": 1629}, "outputs": {"decision": "approve"}}
+{"ts": 1763907283.255383, "node": "hitl_plan_review", "inputs": {"plan_len": 1897}, "outputs": {"decision": "waiting"}}
+{"ts": 1763907315.3974762, "node": "hitl_plan_review", "inputs": {"plan_len": 1897}, "outputs": {"decision": "approve"}}
+{"ts": 1763907849.804458, "node": "hitl_plan_review", "inputs": {"plan_len": 1812}, "outputs": {"decision": "waiting"}}
+{"ts": 1763907856.717432, "node": "hitl_plan_review", "inputs": {"plan_len": 1812}, "outputs": {"decision": "approve"}}
+{"ts": 1763908266.865058, "node": "hitl_plan_review", "inputs": {"plan_len": 1821}, "outputs": {"decision": "waiting"}}
+{"ts": 1763908275.2234461, "node": "hitl_plan_review", "inputs": {"plan_len": 1821}, "outputs": {"decision": "approve"}}
+{"ts": 1763909057.91807, "node": "hitl_plan_review", "inputs": {"plan_len": 1837}, "outputs": {"decision": "waiting"}}
+{"ts": 1763909070.8895302, "node": "hitl_plan_review", "inputs": {"plan_len": 1837}, "outputs": {"decision": "Talk about latest stuff"}}
+{"ts": 1763909082.234105, "node": "hitl_plan_review", "inputs": {"plan_len": 1898}, "outputs": {"decision": "waiting"}}
+{"ts": 1763909086.775984, "node": "hitl_plan_review", "inputs": {"plan_len": 1898}, "outputs": {"decision": "approve"}}
+{"ts": 1763910711.495786, "node": "hitl_plan_review", "inputs": {"plan_len": 2031}, "outputs": {"decision": "waiting"}}
+{"ts": 1763910735.243113, "node": "hitl_plan_review", "inputs": {"plan_len": 2031}, "outputs": {"decision": "approve"}}
