@@ -63,3 +63,5 @@
 {"ts": 1763909250.4404612, "node": "hitl_claims_review", "inputs": {"num_claims": 5}, "outputs": {"decision": "approve"}}
 {"ts": 1763910807.6253572, "node": "hitl_claims_review", "inputs": {"num_claims": 5}, "outputs": {"decision": "waiting"}}
 {"ts": 1763910825.349262, "node": "hitl_claims_review", "inputs": {"num_claims": 5}, "outputs": {"decision": "approve"}}
+{"ts": 1763912542.7334971, "node": "hitl_claims_review", "inputs": {"num_claims": 5}, "outputs": {"decision": "waiting"}}
+{"ts": 1763912545.457412, "node": "hitl_claims_review", "inputs": {"num_claims": 5}, "outputs": {"decision": "approve"}}

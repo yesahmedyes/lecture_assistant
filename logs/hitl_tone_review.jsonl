@@ -33,3 +33,5 @@
 {"ts": 1763909386.182434, "node": "hitl_tone_review", "inputs": {"outline_len": 8441}, "outputs": {"tone_prefs": "skip"}}
 {"ts": 1763910865.210562, "node": "hitl_tone_review", "inputs": {"outline_len": 5907}, "outputs": {"tone_prefs": "waiting"}}
 {"ts": 1763910867.55713, "node": "hitl_tone_review", "inputs": {"outline_len": 5907}, "outputs": {"tone_prefs": "skip"}}
+{"ts": 1763912578.139971, "node": "hitl_tone_review", "inputs": {"outline_len": 5297}, "outputs": {"tone_prefs": "waiting"}}
+{"ts": 1763912580.413877, "node": "hitl_tone_review", "inputs": {"outline_len": 5297}, "outputs": {"tone_prefs": "skip"}}

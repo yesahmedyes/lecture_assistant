@@ -96,3 +96,5 @@
 {"ts": 1763909086.775984, "node": "hitl_plan_review", "inputs": {"plan_len": 1898}, "outputs": {"decision": "approve"}}
 {"ts": 1763910711.495786, "node": "hitl_plan_review", "inputs": {"plan_len": 2031}, "outputs": {"decision": "waiting"}}
 {"ts": 1763910735.243113, "node": "hitl_plan_review", "inputs": {"plan_len": 2031}, "outputs": {"decision": "approve"}}
+{"ts": 1763912367.636322, "node": "hitl_plan_review", "inputs": {"plan_len": 1810}, "outputs": {"decision": "waiting"}}
+{"ts": 1763912373.247586, "node": "hitl_plan_review", "inputs": {"plan_len": 1810}, "outputs": {"decision": "approve"}}
