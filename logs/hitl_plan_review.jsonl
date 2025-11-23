@@ -98,3 +98,16 @@
 {"ts": 1763910735.243113, "node": "hitl_plan_review", "inputs": {"plan_len": 2031}, "outputs": {"decision": "approve"}}
 {"ts": 1763912367.636322, "node": "hitl_plan_review", "inputs": {"plan_len": 1810}, "outputs": {"decision": "waiting"}}
 {"ts": 1763912373.247586, "node": "hitl_plan_review", "inputs": {"plan_len": 1810}, "outputs": {"decision": "approve"}}
+{"ts": 1763913353.8536031, "node": "hitl_plan_review", "inputs": {"plan_len": 1975}, "outputs": {"decision": "waiting"}}
+{"ts": 1763913370.784895, "node": "hitl_plan_review", "inputs": {"plan_len": 1975}, "outputs": {"decision": "approve"}}
+{"ts": 1763913553.143557, "node": "hitl_plan_review", "inputs": {"plan_len": 1989}, "outputs": {"decision": "waiting"}}
+{"ts": 1763913559.761044, "node": "hitl_plan_review", "inputs": {"plan_len": 1989}, "outputs": {"decision": "approve"}}
+{"ts": 1763913983.652479, "node": "hitl_plan_review", "inputs": {"plan_len": 2078}, "outputs": {"decision": "waiting"}}
+{"ts": 1763913987.651988, "node": "hitl_plan_review", "inputs": {"plan_len": 2078}, "outputs": {"decision": "approve"}}
+{"ts": 1763914577.980742, "node": "hitl_plan_review", "inputs": {"plan_len": 1763}, "outputs": {"decision": "waiting"}}
+{"ts": 1763914585.396789, "node": "hitl_plan_review", "inputs": {"plan_len": 1763}, "outputs": {"decision": "approve"}}
+{"ts": 1763914803.4225888, "node": "hitl_plan_review", "inputs": {"plan_len": 1928}, "outputs": {"decision": "waiting"}}
+{"ts": 1763915144.5315342, "node": "hitl_plan_review", "inputs": {"plan_len": 1874}, "outputs": {"decision": "waiting"}}
+{"ts": 1763915171.634222, "node": "hitl_plan_review", "inputs": {"plan_len": 1874}, "outputs": {"decision": "approve"}}
+{"ts": 1763915997.875783, "node": "hitl_plan_review", "inputs": {"plan_len": 1972}, "outputs": {"decision": "waiting"}}
+{"ts": 1763916088.075243, "node": "hitl_plan_review", "inputs": {"plan_len": 1972}, "outputs": {"decision": "approve"}}

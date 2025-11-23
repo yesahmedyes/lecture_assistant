@@ -474,7 +474,7 @@ def build_graph_async(llm: BaseChatModel):
             log_event(
                 "hitl_tone_review",
                 {
-                    "inputs": {"outline_len": len(state.get("outline", ""))},
+                    "inputs": {"brief_len": len(state.get("formatted_brief", ""))},
                     "outputs": {"tone_prefs": "waiting"},
                 },
             )
@@ -488,7 +488,7 @@ def build_graph_async(llm: BaseChatModel):
         log_event(
             "hitl_tone_review",
             {
-                "inputs": {"outline_len": len(state.get("outline", ""))},
+                "inputs": {"brief_len": len(state.get("formatted_brief", ""))},
                 "outputs": {"tone_prefs": existing or "skip"},
             },
         )
@@ -506,7 +506,7 @@ def build_graph_async(llm: BaseChatModel):
         if not prefs or prefs in ("skip", "pending"):
             # If skipped or no preferences, don't apply and preserve the skip status
             return {
-                "outline": state.get("outline", ""),
+                "formatted_brief": state.get("formatted_brief", ""),
                 "tone_prefs": "skip" if prefs == "skip" else "",  # Preserve skip status
                 "status": "tone_applying",
                 "_waiting_for_human": False,
@@ -514,13 +514,13 @@ def build_graph_async(llm: BaseChatModel):
         prompt_text = load_prompt("adjust_tone.txt")
         prompt = ChatPromptTemplate.from_template(prompt_text)
         chain = prompt | llm | StrOutputParser()
-        revised = chain.invoke(
-            {"outline": state.get("outline", ""), "preferences": prefs}
-        )
+        # Apply tone to formatted_brief instead of outline
+        brief = state.get("formatted_brief") or state.get("brief", "")
+        revised = chain.invoke({"outline": brief, "preferences": prefs})
         log_event(
             "tone_apply",
             {
-                "inputs": {"prefs": prefs[:200]},
+                "inputs": {"prefs": prefs[:200], "brief_len": len(brief)},
                 "prompt": prompt_text,
                 "outputs": {
                     "revised_len": len(revised),
@@ -531,7 +531,7 @@ def build_graph_async(llm: BaseChatModel):
         )
         # Reset tone_prefs to pending so tone_review_node will ask for feedback again
         return {
-            "outline": revised,
+            "formatted_brief": revised,
             "tone_prefs": "pending",  # Reset so tone_review will wait for human input again
             "status": "tone_applying",
             "_waiting_for_human": False,
@@ -687,9 +687,11 @@ def build_graph_async(llm: BaseChatModel):
     graph.add_conditional_edges(
         "review",
         needs_revision,
-        {"refine": "refine", "continue": "tone_review"},
+        {"refine": "refine", "continue": "generate_brief"},
     )
     graph.add_edge("refine", "review")
+    graph.add_edge("generate_brief", "format")
+    graph.add_edge("format", "tone_review")
 
     def tone_next(state: LectureState) -> Literal["apply", "skip"]:
         prefs = (state.get("tone_prefs") or "").strip()
@@ -697,11 +699,9 @@ def build_graph_async(llm: BaseChatModel):
         return decision
 
     graph.add_conditional_edges(
-        "tone_review", tone_next, {"apply": "tone_apply", "skip": "generate_brief"}
+        "tone_review", tone_next, {"apply": "tone_apply", "skip": "generate_slides"}
     )
     graph.add_edge("tone_apply", "tone_review")
-    graph.add_edge("generate_brief", "format")
-    graph.add_edge("format", "generate_slides")
     graph.add_edge("generate_slides", END)
 
     # CRITICAL: Add checkpointer for pause/resume functionality

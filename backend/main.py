@@ -146,9 +146,12 @@ def get_checkpoint_data(
             ],
         }
     elif checkpoint_type == "tone_review":
+        # Show formatted_brief or brief for tone review (happens after brief is created)
+        brief = state.get("formatted_brief") or state.get("brief", "")
+        # Show first 2000 characters for tone review so user can see enough context
         return {
             "type": "tone_review",
-            "outline_preview": state.get("outline", "")[:500],
+            "outline_preview": brief,
             "options": [
                 {"id": "skip", "label": "Continue"},
                 {"id": "adjust", "label": "Adjust tone/focus", "requires_input": True},

@@ -402,7 +402,7 @@ def build_graph(llm: BaseChatModel):
         print("🔵 tone_review")
         print("\n=== OPTIONAL TONE/FOCUS ADJUSTMENT ===")
         print(
-            "Would you like to adjust tone or focus? Examples: 'beginner-friendly', 'industry focus', 'math-heavy'."
+            "Would you like to adjust tone or focus of the brief? Examples: 'beginner-friendly', 'industry focus', 'math-heavy'."
         )
         print("Options: [1] Skip  [2] Enter preferences")
         try:
@@ -418,7 +418,7 @@ def build_graph(llm: BaseChatModel):
         log_event(
             "hitl_tone_review",
             {
-                "inputs": {"outline_len": len(state.get("outline", ""))},
+                "inputs": {"brief_len": len(state.get("formatted_brief", ""))},
                 "outputs": {"tone_prefs": prefs or "skip"},
             },
         )
@@ -428,17 +428,20 @@ def build_graph(llm: BaseChatModel):
         print("🔵 tone_apply")
         prefs = (state.get("tone_prefs") or "").strip()
         if not prefs:
-            return {"outline": state.get("outline", ""), "status": "tone_applying"}
+            return {
+                "formatted_brief": state.get("formatted_brief", ""),
+                "status": "tone_applying",
+            }
         prompt_text = load_prompt("adjust_tone.txt")
         prompt = ChatPromptTemplate.from_template(prompt_text)
         chain = prompt | llm | StrOutputParser()
-        revised = chain.invoke(
-            {"outline": state.get("outline", ""), "preferences": prefs}
-        )
+        # Apply tone to formatted_brief instead of outline
+        brief = state.get("formatted_brief") or state.get("brief", "")
+        revised = chain.invoke({"outline": brief, "preferences": prefs})
         log_event(
             "tone_apply",
             {
-                "inputs": {"prefs": prefs[:200]},
+                "inputs": {"prefs": prefs[:200], "brief_len": len(brief)},
                 "prompt": prompt_text,
                 "outputs": {
                     "revised_len": len(revised),
@@ -447,7 +450,7 @@ def build_graph(llm: BaseChatModel):
                 "model": get_model_metadata(llm),
             },
         )
-        return {"outline": revised, "status": "tone_applying"}
+        return {"formatted_brief": revised, "status": "tone_applying"}
 
     def final_brief_node(state: LectureState) -> LectureState:
         print("🔵 generate_brief")
@@ -578,22 +581,22 @@ def build_graph(llm: BaseChatModel):
     graph.add_conditional_edges(
         "review",
         needs_revision,
-        {"refine": "refine", "continue": "tone_review"},
+        {"refine": "refine", "continue": "generate_brief"},
     )
     graph.add_edge("refine", "review")
+    graph.add_edge("generate_brief", "format")
+    graph.add_edge("format", "tone_review")
 
-    # Tone review branch
+    # Tone review branch (after brief is formatted)
     def tone_next(state: LectureState) -> Literal["apply", "skip"]:
         prefs = (state.get("tone_prefs") or "").strip()
-        decision = "apply" if prefs else "skip"
+        decision = "apply" if prefs and prefs != "skip" else "skip"
         return decision
 
     graph.add_conditional_edges(
-        "tone_review", tone_next, {"apply": "tone_apply", "skip": "generate_brief"}
+        "tone_review", tone_next, {"apply": "tone_apply", "skip": "generate_slides"}
     )
-    graph.add_edge("tone_apply", "generate_brief")
-    graph.add_edge("generate_brief", "format")
-    graph.add_edge("format", "generate_slides")
+    graph.add_edge("tone_apply", "tone_review")
     graph.add_edge("generate_slides", END)
 
     memory = MemorySaver()

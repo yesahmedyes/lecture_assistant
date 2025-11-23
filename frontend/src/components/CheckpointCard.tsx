@@ -135,12 +135,10 @@ export default function CheckpointCard({
         return (
           <div className="space-y-4">
             <div>
-              <h4 className="font-medium text-slate-900 mb-2">
-                Outline Preview
-              </h4>
-              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 max-h-64 overflow-y-auto">
+              <h4 className="font-medium text-slate-900 mb-2">Brief Preview</h4>
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 max-h-96 overflow-y-auto">
                 <p className="text-slate-700 whitespace-pre-wrap text-sm">
-                  {data.outline_preview}...
+                  {data.outline_preview}
                 </p>
               </div>
             </div>
